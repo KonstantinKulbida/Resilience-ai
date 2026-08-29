@@ -1,0 +1,9 @@
+{
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/employee", "destination": "/index.html" },
+    { "source": "/employee/(.*)", "destination": "/index.html" },
+    { "source": "/hr", "destination": "/index.html" },
+    { "source": "/hr/(.*)", "destination": "/index.html" }
+  ]
+}
