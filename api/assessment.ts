@@ -1,5 +1,5 @@
-import { generateAssessmentNarrative } from "../server/gemini";
-import { calculateAssessmentScores } from "../server/assessmentScoring";
+import { generateAssessmentNarrative } from "../server/gemini.js";
+import { calculateAssessmentScores } from "../server/assessmentScoring.js";
 
 const isValidAnswers = (value: unknown): value is Record<string, number> => {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;

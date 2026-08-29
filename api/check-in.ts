@@ -1,4 +1,4 @@
-import { generatePersonalizedAdvice } from "../server/gemini";
+import { generatePersonalizedAdvice } from "../server/gemini.js";
 
 const MAX_MOOD_LENGTH = 1000;
 
