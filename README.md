@@ -2,6 +2,8 @@
 
 **AI-enabled B2B HRTech prototype for employee burnout prevention and workforce resilience.**
 
+**Live demo:** https://resilience-ai-eta.vercel.app
+
 Resilience.ai is a portfolio-grade product prototype that demonstrates how an employee wellbeing hypothesis can be turned into a working AI-enabled product without waiting for a full engineering team.
 
 The project is intentionally scoped as a **prototype, not a production SaaS**. It focuses on the product flows, AI architecture, assessment logic, HR analytics and privacy decisions that are most useful for validating the concept and discussing it in product interviews.
