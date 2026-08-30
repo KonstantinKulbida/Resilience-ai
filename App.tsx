@@ -4,6 +4,9 @@ import Sidebar from './components/Sidebar';
 import EmployeeView from './components/EmployeeView';
 import HRView from './components/HRView';
 import LoginPage from './components/LoginPage';
+import LanguageToggle from './components/LanguageToggle';
+import { Menu } from 'lucide-react';
+import { useLanguage } from './i18n/LanguageContext';
 
 const EMPLOYEE_TAB_TO_SLUG: Record<string, string> = {
   progress: 'progress',
@@ -62,6 +65,8 @@ const parseRoute = (pathname: string): AppRoute => {
 
 const App: React.FC = () => {
   const [pathname, setPathname] = useState(() => window.location.pathname);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const { t } = useLanguage();
   const route = parseRoute(pathname);
 
   useEffect(() => {
@@ -85,6 +90,7 @@ const App: React.FC = () => {
   };
 
   const handleLogout = () => {
+    setMobileNavOpen(false);
     navigate('/');
   };
 
@@ -126,28 +132,46 @@ const App: React.FC = () => {
         activeTab={route.activeTab}
         setActiveTab={handleTabChange}
         onLogout={handleLogout}
+        mobileOpen={mobileNavOpen}
+        onMobileClose={() => setMobileNavOpen(false)}
       />
 
-      <main className="flex-1 ml-[18rem] p-8 mr-4 h-screen overflow-y-auto no-scrollbar">
-        <header className="flex justify-between items-center mb-10 pt-4">
-          <div className="bg-white/30 backdrop-blur-xl px-6 py-3 rounded-3xl border border-white/40 shadow-sm">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-              {route.role === UserRole.EMPLOYEE ? 'Личный кабинет' : 'Аналитика'}
-            </h1>
-            <p className="text-slate-500 text-sm">
-              {route.role === UserRole.EMPLOYEE
-                ? 'Программа устойчивости'
-                : 'ООО "ТехноГрупп"'}
-            </p>
+      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:ml-[18rem] lg:p-8 lg:mr-4 min-h-screen lg:h-screen overflow-y-auto no-scrollbar">
+        <header className="flex items-center justify-between gap-3 mb-6 sm:mb-8 lg:mb-10 lg:pt-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen(true)}
+              className="lg:hidden w-11 h-11 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/50 shadow-sm flex items-center justify-center text-slate-600 flex-shrink-0"
+              aria-label={t('Open navigation', 'Открыть меню')}
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            <div className="bg-white/30 backdrop-blur-xl px-4 sm:px-6 py-3 rounded-2xl sm:rounded-3xl border border-white/40 shadow-sm min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight truncate">
+                {route.role === UserRole.EMPLOYEE ? t('Employee workspace', 'Личный кабинет') : t('People analytics', 'Аналитика')}
+              </h1>
+              <p className="text-slate-500 text-xs sm:text-sm truncate">
+                {route.role === UserRole.EMPLOYEE
+                  ? t('Resilience program', 'Программа устойчивости')
+                  : t('Northstar Labs • synthetic demo', 'ООО «ТехноГрупп» • synthetic demo')}
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3 bg-white/30 backdrop-blur-xl pl-6 pr-2 py-2 rounded-full border border-white/40 shadow-sm">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-slate-900">Александр Иванов</p>
-              <p className="text-xs text-slate-500">{route.role === UserRole.EMPLOYEE ? 'Senior Developer' : 'HR Director'}</p>
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <div className="hidden md:block">
+              <LanguageToggle compact />
             </div>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-white to-slate-100 border border-white flex items-center justify-center text-slate-600 text-xs font-bold shadow-inner">
-              АИ
+            <div className="flex items-center gap-3 bg-white/30 backdrop-blur-xl sm:pl-5 pr-2 py-2 rounded-full border border-white/40 shadow-sm">
+              <div className="text-right hidden xl:block">
+                <p className="text-sm font-semibold text-slate-900">{t('Alex Morgan', 'Александр Иванов')}</p>
+                <p className="text-xs text-slate-500">{route.role === UserRole.EMPLOYEE ? 'Senior Developer' : 'HR Director'}</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-white to-slate-100 border border-white flex items-center justify-center text-slate-600 text-xs font-bold shadow-inner">
+                {t('AM', 'АИ')}
+              </div>
             </div>
           </div>
         </header>

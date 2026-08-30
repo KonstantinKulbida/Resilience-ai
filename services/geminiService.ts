@@ -1,4 +1,4 @@
-import type { AIAnalysisResult } from "../types";
+import type { AIAnalysisResult, AppLanguage } from "../types";
 
 const postJson = async <T>(url: string, body: unknown): Promise<T> => {
   const response = await fetch(url, {
@@ -18,27 +18,33 @@ const postJson = async <T>(url: string, body: unknown): Promise<T> => {
 
 export const getPersonalizedAdvice = async (
   mood: string,
-  stressLevel: number
+  stressLevel: number,
+  language: AppLanguage
 ): Promise<string> => {
   try {
     const data = await postJson<{ advice: string }>("/api/check-in", {
       mood,
       stressLevel,
+      language,
     });
 
-    return data.advice || "Не удалось получить рекомендацию.";
+    return data.advice || (language === 'ru'
+      ? "Не удалось получить рекомендацию."
+      : "We couldn't generate a recommendation right now.");
   } catch (error) {
     console.error("AI API Error:", error);
-    return "Сервис временно недоступен. Попробуйте сделать глубокий вдох.";
+    return language === 'ru'
+      ? "Сервис временно недоступен. Сделайте короткую паузу и попробуйте ещё раз чуть позже."
+      : "The AI service is temporarily unavailable. Take a short pause and try again in a moment.";
   }
 };
 
 export const analyzeAssessment = async (
-  answers: Record<string, number>
+  answers: Record<string, number>,
+  language: AppLanguage
 ): Promise<AIAnalysisResult | null> => {
   try {
-    const data = await postJson<AIAnalysisResult>("/api/assessment", { answers });
-    return data;
+    return await postJson<AIAnalysisResult>("/api/assessment", { answers, language });
   } catch (error) {
     console.error("AI API Error:", error);
     return null;

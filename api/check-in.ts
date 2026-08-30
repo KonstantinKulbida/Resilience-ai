@@ -8,7 +8,8 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { mood, stressLevel } = req.body ?? {};
+  const { mood, stressLevel, language } = req.body ?? {};
+  const responseLanguage = language === 'ru' ? 'ru' : 'en';
 
   if (
     typeof mood !== "string" ||
@@ -23,7 +24,7 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const advice = await generatePersonalizedAdvice(mood.trim(), stressLevel);
+    const advice = await generatePersonalizedAdvice(mood.trim(), stressLevel, responseLanguage);
     return res.status(200).json({ advice });
   } catch (error) {
     console.error("Check-in AI error:", error);

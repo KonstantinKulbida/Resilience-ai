@@ -1,3 +1,5 @@
+export type AppLanguage = 'en' | 'ru';
+
 export enum UserRole {
   EMPLOYEE = 'EMPLOYEE',
   HR = 'HR'

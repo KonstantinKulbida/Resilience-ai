@@ -1,5 +1,5 @@
 import { GoogleGenAI, ThinkingLevel, Type } from "@google/genai";
-import type { AIAnalysisResult } from "../types";
+import type { AIAnalysisResult, AppLanguage } from "../types";
 import type { DeterministicAssessmentScores } from "./assessmentScoring";
 
 const getClient = () => {
@@ -14,23 +14,27 @@ const getClient = () => {
 
 export const generatePersonalizedAdvice = async (
   mood: string,
-  stressLevel: number
+  stressLevel: number,
+  language: AppLanguage
 ): Promise<string> => {
   const ai = getClient();
+  const languageInstruction = language === 'ru'
+    ? 'Ответ должен быть на русском языке.'
+    : 'Respond in natural, concise English.';
   const response = await ai.models.generateContent({
     model: "gemini-3.6-flash",
     contents: `
       Ты — эмпатичный помощник корпоративной wellbeing-программы.
       Сотрудник описывает свое состояние так: "${mood}" и оценивает свой уровень стресса как ${stressLevel} из 10.
       Дай краткую (максимум 3 предложения), поддерживающую рекомендацию и предложи одну простую технику, которую можно сделать прямо сейчас примерно за 2 минуты.
-      Не ставь диагнозов и не используй Markdown, звездочки, заголовки или списки. Ответ должен быть на русском языке.
+      Не ставь диагнозов и не используй Markdown, звездочки, заголовки или списки. ${languageInstruction}
     `,
     config: {
       thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
     },
   });
 
-  return response.text || "Не удалось получить рекомендацию.";
+  return response.text || (language === 'ru' ? 'Не удалось получить рекомендацию.' : "We couldn't generate a recommendation right now.");
 };
 
 type AssessmentNarrative = Pick<
@@ -58,15 +62,17 @@ const isAssessmentNarrative = (value: unknown): value is AssessmentNarrative => 
 };
 
 export const generateAssessmentNarrative = async (
-  scores: DeterministicAssessmentScores
+  scores: DeterministicAssessmentScores,
+  language: AppLanguage
 ): Promise<AssessmentNarrative> => {
   const ai = getClient();
 
-  const riskBandLabel = {
-    low: "низкий",
-    moderate: "умеренный",
-    high: "высокий",
-  }[scores.riskBand];
+  const riskBandLabel = language === 'ru'
+    ? { low: 'низкий', moderate: 'умеренный', high: 'высокий' }[scores.riskBand]
+    : { low: 'low', moderate: 'moderate', high: 'high' }[scores.riskBand];
+  const languageInstruction = language === 'ru'
+    ? 'Пиши на русском языке.'
+    : 'Write in natural, concise English.';
 
   const response = await ai.models.generateContent({
     model: "gemini-3.6-flash",
@@ -87,7 +93,7 @@ export const generateAssessmentNarrative = async (
       2. summary — 2-3 предложения: какая из трех зон наиболее заметна и что это может означать в рабочем контексте.
       3. recommendations — 3-4 конкретных, реалистичных и низкорисковых следующих шага: восстановление, управление нагрузкой, границы, коммуникация с руководителем/HR или обращение за профессиональной поддержкой при сохраняющемся выраженном неблагополучии.
 
-      Не ставь диагнозов. Не называй результат клиническим тестом. Не используй Markdown внутри строк. Пиши на русском языке.
+      Не ставь диагнозов. Не называй результат клиническим тестом. Не используй Markdown внутри строк. ${languageInstruction}
     `,
     config: {
       thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },

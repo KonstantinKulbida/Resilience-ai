@@ -27,7 +27,8 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { answers } = req.body ?? {};
+  const { answers, language } = req.body ?? {};
+  const responseLanguage = language === 'ru' ? 'ru' : 'en';
 
   if (!isValidAnswers(answers)) {
     return res.status(400).json({ error: "Invalid assessment answers" });
@@ -35,7 +36,7 @@ export default async function handler(req: any, res: any) {
 
   try {
     const scores = calculateAssessmentScores(answers);
-    const narrative = await generateAssessmentNarrative(scores);
+    const narrative = await generateAssessmentNarrative(scores, responseLanguage);
 
     return res.status(200).json({
       burnoutPercentage: scores.burnoutPercentage,
