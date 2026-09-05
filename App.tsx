@@ -86,7 +86,7 @@ const App: React.FC = () => {
   };
 
   const handleLogin = (selectedRole: UserRole) => {
-    navigate(selectedRole === UserRole.HR ? '/hr/dashboard' : '/employee/progress');
+    navigate(selectedRole === UserRole.HR ? '/hr/dashboard' : '/employee/assessment');
   };
 
   const handleLogout = () => {
