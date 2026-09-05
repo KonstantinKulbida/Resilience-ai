@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle, Brain, Wind, ArrowLeft, Video, FileText, TrendingUp, AlertTriangle, Zap, Thermometer, Clock, BookOpen, Sparkles, ChevronRight, RefreshCw, Calendar, Info, Lock, Lightbulb, PenTool, Edit3, Target, BarChart2, Save, X, Briefcase } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Legend } from 'recharts';
 import { getPersonalizedAdvice, analyzeAssessment } from '../services/geminiService';
 import { AIAnalysisResult } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -93,32 +93,6 @@ const CustomTooltip = ({ active, payload, label, stressLabel = 'Stress', product
     );
   }
   return null;
-};
-
-// Helper for needle in Gauge
-const RADIAN = Math.PI / 180;
-const Needle = ({ value, cx, cy, iR, oR, color }: any) => {
-  const totalAngle = 180; // semicircle
-  const angle = 180 - (value / 100) * totalAngle;
-  const length = (iR + 2 * oR) / 3;
-  const sin = Math.sin(-RADIAN * angle);
-  const cos = Math.cos(-RADIAN * angle);
-  const r = 5;
-  const x0 = cx;
-  const y0 = cy;
-  const xba = x0 + r * sin;
-  const yba = y0 - r * cos;
-  const xbb = x0 - r * sin;
-  const ybb = y0 + r * cos;
-  const xp = x0 + length * cos;
-  const yp = y0 + length * sin;
-
-  return (
-    <g>
-      <circle cx={x0} cy={y0} r={r} fill={color} stroke="none" />
-      <path d={`M${xba} ${yba}L${xbb} ${ybb} L${xp} ${yp} L${xba} ${yba}`} fill={color} stroke="none" />
-    </g>
-  );
 };
 
 const EmployeeView: React.FC<EmployeeViewProps> = ({ activeTab, selectedModuleId, onModuleSelect, onModuleBack }) => {
@@ -307,46 +281,30 @@ const EmployeeView: React.FC<EmployeeViewProps> = ({ activeTab, selectedModuleId
               <div className="lg:col-span-1 bg-white/60 backdrop-blur-xl rounded-[2.5rem] p-5 sm:p-8 border border-white/50 shadow-lg shadow-indigo-500/5 flex flex-col items-center justify-center relative overflow-hidden min-h-[300px]">
                  <h3 className="text-lg font-bold text-slate-900 mb-2 text-center">{t('Overall burnout risk', 'Общий риск выгорания')}</h3>
                  <div className="relative w-full h-48 flex items-center justify-center">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          dataKey="value"
-                          startAngle={180}
-                          endAngle={0}
-                          data={[{ value: 33 }, { value: 33 }, { value: 34 }]}
-                          cx="50%"
-                          cy="70%"
-                          innerRadius={80}
-                          outerRadius={110}
-                          fill="#8884d8"
-                          paddingAngle={2}
-                        >
-                          <Cell fill="#10b981" stroke="none" />
-                          <Cell fill="#f59e0b" stroke="none" />
-                          <Cell fill="#ef4444" stroke="none" />
-                        </Pie>
-                        {/* Needle */}
-                        <text x="50%" y="20%" textAnchor="middle" dominantBaseline="middle" className="fill-slate-900 text-3xl font-bold">
-                           {/* Invisible text for spacing */}
-                        </text>
-                        {assessmentResult && (
-                           <Pie 
-                             dataKey="value" 
-                             startAngle={180} 
-                             endAngle={0} 
-                             data={[{value: assessmentResult.burnoutPercentage}]} 
-                             cx="50%" 
-                             cy="70%" 
-                             innerRadius={0} 
-                             outerRadius={0} 
-                           >
-                              {/* Custom Needle Rendering */}
-                              {/* This is a hacky way to inject the needle since Pie doesn't support it directly */}
-                           </Pie>
-                        )}
-                        <Needle value={assessmentResult.burnoutPercentage} cx="50%" cy="70%" iR={80} oR={110} color="#1e293b" />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    <svg
+                      viewBox="0 0 240 140"
+                      className="w-full h-full"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M 38 120 A 82 82 0 0 1 76.55 50.46"
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="30"
+                      />
+                      <path
+                        d="M 81.50 47.60 A 82 82 0 0 1 158.50 47.60"
+                        fill="none"
+                        stroke="#f59e0b"
+                        strokeWidth="30"
+                      />
+                      <path
+                        d="M 163.45 50.46 A 82 82 0 0 1 202 120"
+                        fill="none"
+                        stroke="#ef4444"
+                        strokeWidth="30"
+                      />
+                    </svg>
                     <div className="absolute bottom-4 flex flex-col items-center">
                        <span className="text-5xl font-bold text-slate-900">{assessmentResult.burnoutPercentage}%</span>
                        <span className={`text-xs font-bold uppercase px-3 py-1 rounded-full mt-2 ${
