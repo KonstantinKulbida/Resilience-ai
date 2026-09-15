@@ -1,83 +1,88 @@
-export type AssessmentMetrics = {
-  exhaustion: number;
-  cynicism: number;
-  inefficacy: number;
+import {
+  ASSESSMENT_QUESTIONS,
+  type SustainabilityFactor,
+  type SustainabilityStatus,
+} from '../assessmentModel.js';
+
+export type QuestionScore = {
+  id: number;
+  factor: SustainabilityFactor;
+  score: number;
 };
 
 export type DeterministicAssessmentScores = {
-  burnoutPercentage: number;
-  metrics: AssessmentMetrics;
-  riskBand: "low" | "moderate" | "high";
+  score: number;
+  status: SustainabilityStatus;
+  factors: Record<SustainabilityFactor, { score: number; status: SustainabilityStatus }>;
+  weakestFactor: SustainabilityFactor;
+  questionScores: QuestionScore[];
+  weakestQuestionIds: number[];
 };
 
-type Dimension = keyof AssessmentMetrics;
-
-type ScoringItem = {
-  id: number;
-  dimension: Dimension;
-  reverse?: boolean;
-};
-
-// Custom 12-item portfolio screening. It is not a clinical diagnostic instrument.
-// Positive statements are reverse-scored so that 0 always means lower burnout risk
-// and 100 always means higher burnout risk.
-const SCORING_ITEMS: ScoringItem[] = [
-  { id: 1, dimension: "exhaustion" },
-  { id: 2, dimension: "exhaustion" },
-  { id: 3, dimension: "exhaustion" },
-  { id: 4, dimension: "exhaustion" },
-  { id: 7, dimension: "exhaustion", reverse: true },
-
-  { id: 5, dimension: "cynicism" },
-  { id: 6, dimension: "cynicism" },
-  { id: 10, dimension: "cynicism" },
-  { id: 11, dimension: "cynicism" },
-
-  { id: 8, dimension: "inefficacy", reverse: true },
-  { id: 9, dimension: "inefficacy", reverse: true },
-  { id: 12, dimension: "inefficacy", reverse: true },
+const FACTOR_ORDER: SustainabilityFactor[] = [
+  'workloadBalance',
+  'recovery',
+  'controlClarity',
 ];
 
 const normalizeAnswer = (answer: number, reverse = false): number => {
-  const riskOrientedAnswer = reverse ? 6 - answer : answer;
-  return ((riskOrientedAnswer - 1) / 4) * 100;
+  const sustainabilityOrientedAnswer = reverse ? 6 - answer : answer;
+  return Math.round(((sustainabilityOrientedAnswer - 1) / 4) * 100);
 };
 
 const average = (values: number[]): number =>
   Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
 
+export const getSustainabilityStatus = (score: number): SustainabilityStatus => {
+  if (score >= 80) return 'green';
+  if (score >= 65) return 'stable';
+  if (score >= 45) return 'needs_attention';
+  return 'at_risk';
+};
+
 export const calculateAssessmentScores = (
   answers: Record<string, number>
 ): DeterministicAssessmentScores => {
-  const buckets: Record<Dimension, number[]> = {
-    exhaustion: [],
-    cynicism: [],
-    inefficacy: [],
+  const buckets: Record<SustainabilityFactor, number[]> = {
+    workloadBalance: [],
+    recovery: [],
+    controlClarity: [],
   };
 
-  for (const item of SCORING_ITEMS) {
-    const answer = answers[String(item.id)];
-    buckets[item.dimension].push(normalizeAnswer(answer, item.reverse));
-  }
+  const questionScores: QuestionScore[] = ASSESSMENT_QUESTIONS.map((question) => {
+    const answer = answers[String(question.id)];
+    const score = normalizeAnswer(answer, question.reverse);
+    buckets[question.factor].push(score);
+    return { id: question.id, factor: question.factor, score };
+  });
 
-  const metrics: AssessmentMetrics = {
-    exhaustion: average(buckets.exhaustion),
-    cynicism: average(buckets.cynicism),
-    inefficacy: average(buckets.inefficacy),
-  };
+  const factors = FACTOR_ORDER.reduce((result, factor) => {
+    const score = average(buckets[factor]);
+    result[factor] = { score, status: getSustainabilityStatus(score) };
+    return result;
+  }, {} as Record<SustainabilityFactor, { score: number; status: SustainabilityStatus }>);
 
-  // Equal weighting keeps each conceptual dimension equally important even though
-  // the dimensions contain different numbers of questions.
-  const burnoutPercentage = Math.round(
-    (metrics.exhaustion + metrics.cynicism + metrics.inefficacy) / 3
+  const score = Math.round(
+    FACTOR_ORDER.reduce((sum, factor) => sum + factors[factor].score, 0) /
+      FACTOR_ORDER.length
   );
 
-  const riskBand =
-    burnoutPercentage < 34
-      ? "low"
-      : burnoutPercentage < 67
-        ? "moderate"
-        : "high";
+  const weakestFactor = FACTOR_ORDER.reduce((weakest, factor) =>
+    factors[factor].score < factors[weakest].score ? factor : weakest
+  );
 
-  return { burnoutPercentage, metrics, riskBand };
+  const weakestQuestionIds = questionScores
+    .filter((item) => item.factor === weakestFactor)
+    .sort((a, b) => a.score - b.score || a.id - b.id)
+    .slice(0, 2)
+    .map((item) => item.id);
+
+  return {
+    score,
+    status: getSustainabilityStatus(score),
+    factors,
+    weakestFactor,
+    questionScores,
+    weakestQuestionIds,
+  };
 };

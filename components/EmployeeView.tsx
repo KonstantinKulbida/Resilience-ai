@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle, Brain, Wind, ArrowLeft, Video, FileText, TrendingUp, AlertTriangle, Zap, Thermometer, Clock, BookOpen, Sparkles, ChevronRight, RefreshCw, Calendar, Info, Lock, Lightbulb, PenTool, Edit3, Target, BarChart2, Save, X, Briefcase } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Legend } from 'recharts';
-import { getPersonalizedAdvice, analyzeAssessment } from '../services/geminiService';
-import { AIAnalysisResult } from '../types';
+import { getPersonalizedAdvice } from '../services/geminiService';
 import { useLanguage } from '../i18n/LanguageContext';
+import AssessmentViewV1 from './AssessmentViewV1';
 
 interface EmployeeViewProps {
   activeTab: string;
@@ -109,10 +109,6 @@ const EmployeeView: React.FC<EmployeeViewProps> = ({ activeTab, selectedModuleId
   const [aiAdvice, setAiAdvice] = useState<string | null>(null);
   const [loadingAdvice, setLoadingAdvice] = useState(false);
   const [isCustomSymptomInput, setIsCustomSymptomInput] = useState(false);
-  
-  // Assessment State
-  const [assessmentAnswers, setAssessmentAnswers] = useState<Record<number, number>>({});
-  const [assessmentResult, setAssessmentResult] = useState<AIAnalysisResult | null>(null);
 
   // Notes State
   const [userNotes, setUserNotes] = useState<Array<{ id: number; date: string; text: string }>>([]);
@@ -122,23 +118,7 @@ const EmployeeView: React.FC<EmployeeViewProps> = ({ activeTab, selectedModuleId
   useEffect(() => {
     // AI copy is language-specific; clear generated output when the user switches locale.
     setAiAdvice(null);
-    setAssessmentResult(null);
   }, [language]);
-
-  const questions = [
-    { id: 1, text: t('I feel emotionally drained', 'Я чувствую себя эмоционально опустошенным(ой)') },
-    { id: 2, text: t('It is hard to get up and start work in the morning', 'По утрам мне тяжело вставать и браться за работу') },
-    { id: 3, text: t('I feel that I am working too much', 'Мне кажется, я слишком много работаю') },
-    { id: 4, text: t('I feel burned out by my work', 'Я чувствую, что выгораю на работе') },
-    { id: 5, text: t('I have become more emotionally distant from people lately', 'В последнее время я стал(а) более черствым(ой) к людям') },
-    { id: 6, text: t('I feel disappointed with my work', 'Я чувствую, что моя работа меня разочаровывает') },
-    { id: 7, text: t('I feel full of energy', 'Я полон(полна) энергии') },
-    { id: 8, text: t('I handle my work tasks effectively', 'Я легко справляюсь с профессиональными задачами') },
-    { id: 9, text: t('I feel that my work is meaningful', 'Я чувствую, что делаю полезное дело') },
-    { id: 10, text: t('I feel indifferent to what happens to some colleagues', 'Меня не волнует, что происходит с некоторыми коллегами') },
-    { id: 11, text: t('I want to withdraw and avoid seeing people', 'Мне хочется уединиться и никого не видеть') },
-    { id: 12, text: t('I feel confident that I can handle what is ahead', 'Я чувствую уверенность, что у меня все получится') },
-  ];
 
   const handleMoodSelect = (mood: string) => {
     const selectedMood = moodOptions.find((item) => item.id === mood);
@@ -164,20 +144,6 @@ const EmployeeView: React.FC<EmployeeViewProps> = ({ activeTab, selectedModuleId
     setLoadingAdvice(false);
   };
 
-  const handleAssessmentSubmit = async () => {
-    if (Object.keys(assessmentAnswers).length < questions.length) {
-      alert(t('Please answer all questions.', 'Пожалуйста, ответьте на все вопросы.'));
-      return;
-    }
-    setLoadingAdvice(true);
-    const result = await analyzeAssessment(assessmentAnswers as any, language);
-    setAssessmentResult(result);
-    setLoadingAdvice(false);
-    if (!result) {
-      alert(t('The AI interpretation is temporarily unavailable. Your answers were not lost — please try again.', 'AI-интерпретация временно недоступна. Ваши ответы не потеряны — попробуйте ещё раз.'));
-    }
-  };
-
   const handleSaveNote = () => {
     if (!newNoteText.trim()) return;
     const newNote = {
@@ -200,290 +166,7 @@ const EmployeeView: React.FC<EmployeeViewProps> = ({ activeTab, selectedModuleId
   // --- RENDERERS ---
 
   if (activeTab === 'assessment') {
-    return (
-      <div key="assessment" className="max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-10 animate-enter">
-        {!assessmentResult ? (
-          <div className="bg-white/40 backdrop-blur-xl rounded-[2rem] p-5 sm:p-8 border border-white/50 shadow-lg shadow-indigo-500/5 max-w-4xl mx-auto">
-             <div className="mb-8">
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">{t('Wellbeing self-assessment', 'Самооценка состояния')}</h2>
-              <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex items-start gap-3">
-                <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-slate-700 text-sm font-medium mb-1">
-                    {t('Please rate how you have been feeling over the ', 'Пожалуйста, оцените свое состояние за ')}<span className="font-bold text-blue-700">{t('past 2 weeks', 'последние 2 недели')}</span>.
-                  </p>
-                  <p className="text-xs text-slate-500 mb-2">{t('This self-assessment helps track wellbeing trends. It is not a medical diagnosis.', 'Это self-assessment для отслеживания wellbeing, а не медицинская диагностика.')}</p>
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-slate-500 mt-2">
-                    <div className="flex items-center gap-1">
-                      <span className="w-6 h-6 rounded-lg border border-slate-300 bg-white flex items-center justify-center font-bold">1</span>
-                      <span>{t('Never / Very rarely', 'Никогда / Очень редко')}</span>
-                    </div>
-                    <div className="hidden sm:block h-px w-8 bg-slate-300"></div>
-                    <div className="flex items-center gap-1">
-                      <span className="w-6 h-6 rounded-lg border border-slate-900 bg-slate-900 text-white flex items-center justify-center font-bold">5</span>
-                      <span>{t('Very often / Every day', 'Очень часто / Каждый день')}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="space-y-8">
-              {questions.map((q) => (
-                <div key={q.id} className="pb-6 border-b border-black/5 last:border-0 last:pb-0">
-                  <p className="font-medium text-slate-800 mb-4 text-base sm:text-lg">{q.text}</p>
-                  <div className="grid grid-cols-5 gap-2 sm:flex sm:gap-3">
-                    {[1, 2, 3, 4, 5].map((val) => (
-                      <button
-                        key={val}
-                        onClick={() => setAssessmentAnswers(prev => ({ ...prev, [q.id]: val }))}
-                        className={`w-full sm:w-12 h-11 sm:h-12 rounded-xl sm:rounded-2xl text-base font-semibold transition-all duration-300 ${
-                          assessmentAnswers[q.id] === val 
-                            ? 'bg-slate-900 text-white shadow-lg scale-110' 
-                            : 'bg-white/50 text-slate-500 border border-white/60 hover:bg-white hover:scale-105'
-                        }`}
-                      >
-                        {val}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              <button 
-                onClick={handleAssessmentSubmit}
-                disabled={loadingAdvice}
-                className="mt-8 bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-2xl text-base font-medium w-full flex justify-center items-center transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1"
-              >
-                {loadingAdvice ? t('Analyzing...', 'Анализ...') : t('View results', 'Получить результат')}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="animate-fade-in space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white/40 backdrop-blur-md p-6 rounded-[2rem] border border-white/50 gap-4">
-               <div>
-                 <h2 className="text-xl sm:text-2xl font-bold text-slate-900">{t('Assessment results', 'Результаты оценки состояния')}</h2>
-                 <p className="text-slate-500 text-sm">{t('Date', 'Дата')}: {new Date().toLocaleDateString(locale)}</p>
-               </div>
-               <div className="flex gap-3">
-                 <button 
-                    onClick={() => setAssessmentResult(null)}
-                    className="text-slate-500 hover:text-slate-900 text-sm font-bold flex items-center transition-colors bg-white/50 px-4 py-2 rounded-xl border border-white/50"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    {t('Retake', 'Заново')}
-                  </button>
-               </div>
-            </div>
-
-            <div className="grid lg:grid-cols-3 gap-6">
-              {/* Overall Score Card - GAUGE STYLE */}
-              <div className="lg:col-span-1 bg-white/60 backdrop-blur-xl rounded-[2.5rem] p-5 sm:p-8 border border-white/50 shadow-lg shadow-indigo-500/5 flex flex-col items-center justify-center relative overflow-hidden min-h-[300px]">
-                 <h3 className="text-lg font-bold text-slate-900 mb-2 text-center">{t('Overall burnout risk', 'Общий риск выгорания')}</h3>
-                 <div className="relative w-full h-48 flex items-center justify-center">
-                    <svg
-                      viewBox="0 0 240 140"
-                      className="w-full h-full"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M 38 120 A 82 82 0 0 1 76.55 50.46"
-                        fill="none"
-                        stroke="#10b981"
-                        strokeWidth="30"
-                      />
-                      <path
-                        d="M 81.50 47.60 A 82 82 0 0 1 158.50 47.60"
-                        fill="none"
-                        stroke="#f59e0b"
-                        strokeWidth="30"
-                      />
-                      <path
-                        d="M 163.45 50.46 A 82 82 0 0 1 202 120"
-                        fill="none"
-                        stroke="#ef4444"
-                        strokeWidth="30"
-                      />
-                    </svg>
-                    <div className="absolute bottom-4 flex flex-col items-center">
-                       <span className="text-5xl font-bold text-slate-900">{assessmentResult.burnoutPercentage}%</span>
-                       <span className={`text-xs font-bold uppercase px-3 py-1 rounded-full mt-2 ${
-                         assessmentResult.burnoutPercentage > 60 ? 'bg-red-100 text-red-700' : 
-                         assessmentResult.burnoutPercentage > 30 ? 'bg-amber-100 text-amber-700' : 
-                         'bg-emerald-100 text-emerald-700'
-                       }`}>
-                         {assessmentResult.burnoutPercentage > 60 ? t('High risk', 'Высокий риск') : assessmentResult.burnoutPercentage > 30 ? t('Moderate risk', 'Средний риск') : t('Low risk', 'Низкий риск')}
-                       </span>
-                    </div>
-                 </div>
-              </div>
-
-              {/* Trend Chart - VISUAL UPGRADE */}
-              <div className="lg:col-span-2 bg-white/40 backdrop-blur-xl rounded-[2.5rem] p-5 sm:p-8 border border-white/50 shadow-lg shadow-indigo-500/5">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
-                  <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-blue-500" />
-                    {t('Wellbeing trend', 'Динамика состояния')}
-                  </h3>
-                  <div className="hidden sm:flex gap-4 text-xs font-medium bg-white/30 px-3 py-1 rounded-lg text-slate-500">
-                    <span>{t('Illustrative history • synthetic data', 'Пример истории • synthetic data')}</span>
-                  </div>
-                </div>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={[
-                        { name: t('1 mo ago', 'Месяц назад'), stress: 88, productivity: 40 },
-                        { name: t('2 wks ago', '2 нед. назад'), stress: 75, productivity: 55 },
-                        { name: t('1 wk ago', 'Неделю назад'), stress: 65, productivity: 68 },
-                        { 
-                          name: t('Now', 'Сейчас'),
-                          stress: assessmentResult.metrics.exhaustion, 
-                          productivity: 100 - assessmentResult.metrics.inefficacy 
-                        },
-                      ]}
-                      margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
-                    >
-                      <defs>
-                         <linearGradient id="colorStressEm" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
-                          </linearGradient>
-                          <linearGradient id="colorProdEm" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                          </linearGradient>
-                      </defs>
-                      <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} dy={10} />
-                      <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                      <CartesianGrid vertical={false} stroke="rgba(0,0,0,0.05)" strokeDasharray="3 3" />
-                      <Tooltip content={<CustomTooltip stressLabel={t('Stress', 'Стресс')} productivityLabel={t('Resource', 'Эффект.')} />} cursor={{stroke: 'rgba(0,0,0,0.1)', strokeWidth: 2}}/>
-                      <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                      <ReferenceLine y={50} label={t('Balance zone', 'Зона баланса')} stroke="#94a3b8" strokeDasharray="3 3" />
-                      <Area 
-                        type="monotone" 
-                        dataKey="stress" 
-                        name={t('Stress level', 'Уровень стресса')}
-                        stroke="#ef4444" 
-                        fill="url(#colorStressEm)" 
-                        strokeWidth={3} 
-                        dot={{ r: 4, strokeWidth: 2, fill: '#fff', stroke: '#ef4444' }}
-                        activeDot={{ r: 6, strokeWidth: 0 }}
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="productivity" 
-                        name={t('Resource / effectiveness', 'Ресурс / Эффективность')}
-                        stroke="#10b981" 
-                        fill="url(#colorProdEm)" 
-                        strokeWidth={3}
-                        dot={{ r: 4, strokeWidth: 2, fill: '#fff', stroke: '#10b981' }}
-                        activeDot={{ r: 6, strokeWidth: 0 }}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-
-            {/* Detailed Metrics */}
-            <div className="grid md:grid-cols-3 gap-6">
-              {[
-                { label: t('Exhaustion', 'Истощение'), val: assessmentResult.metrics.exhaustion, color: 'red', icon: Thermometer },
-                { label: t('Cynicism', 'Цинизм'), val: assessmentResult.metrics.cynicism, color: 'orange', icon: AlertTriangle },
-                { label: t('Inefficacy', 'Неэффективность'), val: assessmentResult.metrics.inefficacy, color: 'blue', icon: BarChart2 },
-              ].map((m) => (
-                <div key={m.label} className="bg-white/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/50 shadow-sm relative overflow-hidden group hover:scale-[1.02] transition-all">
-                   <div className={`absolute top-0 right-0 p-4 opacity-10 text-${m.color}-500 group-hover:opacity-20 transition-opacity`}>
-                      <m.icon className="w-20 h-20" />
-                   </div>
-                   <div className="flex flex-wrap justify-between items-start gap-2 mb-4">
-                     <h4 className="text-slate-500 font-bold text-xs uppercase tracking-wider">{m.label}</h4>
-                     <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-white/60 text-slate-400 uppercase tracking-wider">
-                        {t('Current snapshot', 'Текущий срез')}
-                     </span>
-                   </div>
-                   
-                   <div className="flex items-end gap-2 mb-3">
-                      <span className="text-4xl font-bold text-slate-900">{m.val}%</span>
-                   </div>
-                   <div className="w-full bg-white/50 h-3 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full bg-${m.color}-500 transition-all duration-1000 ease-out`} style={{ width: `${m.val}%` }}></div>
-                   </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Analysis & Recommendations */}
-            <div className="grid lg:grid-cols-5 gap-6">
-               {/* Analysis Text - 2 Cols */}
-               <div className="lg:col-span-2 bg-white/40 backdrop-blur-xl p-5 sm:p-8 rounded-[2rem] border border-white/50 shadow-sm flex flex-col">
-                  <div className="flex items-center gap-3 mb-4">
-                     <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg shadow-slate-900/20">
-                        <Brain className="w-6 h-6" />
-                     </div>
-                     <h3 className="font-bold text-lg text-slate-900">{t('AI interpretation', 'Анализ состояния')}</h3>
-                  </div>
-                  <div className="space-y-6 flex-1">
-                     <p className="text-slate-700 leading-relaxed font-medium">
-                        {assessmentResult.summary}
-                     </p>
-                     <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-5 rounded-2xl border border-indigo-100">
-                        <div className="flex items-center gap-2 mb-2">
-                           <Briefcase className="w-4 h-4 text-indigo-600" />
-                           <p className="text-xs text-indigo-900 font-bold uppercase tracking-wider">{t('Possible work impact', 'Влияние на работу')}</p>
-                        </div>
-                        <p className="text-slate-700 text-sm">{assessmentResult.productivityImpact}</p>
-                     </div>
-                  </div>
-               </div>
-
-               {/* Actionable Recommendations - 3 Cols - CARD GRID */}
-               <div className="lg:col-span-3 bg-gradient-to-br from-emerald-50/50 to-teal-50/50 backdrop-blur-xl p-5 sm:p-8 rounded-[2rem] border border-emerald-100/50 shadow-sm">
-                  <div className="flex items-center justify-between mb-6">
-                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                           <Target className="w-6 h-6" />
-                        </div>
-                        <div>
-                           <h3 className="font-bold text-lg text-emerald-900">{t('Your action plan', 'Ваш план действий')}</h3>
-                           <p className="text-emerald-700/60 text-xs font-bold uppercase">{t('AI recommendations', 'Рекомендации AI')}</p>
-                        </div>
-                     </div>
-                  </div>
-                  
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {assessmentResult.recommendations.map((rec, idx) => (
-                      <div key={idx} className="bg-white/80 p-5 rounded-2xl border border-emerald-100/50 hover:shadow-md transition-all group flex flex-col">
-                        <div className="flex justify-between items-start mb-3">
-                           <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-lg uppercase tracking-wider">
-                              {t('Step', 'Шаг')} {idx + 1}
-                           </span>
-                           <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">AI</span>
-                        </div>
-                        <p className="text-slate-800 text-sm font-semibold leading-relaxed mb-4 flex-1">
-                           {rec}
-                        </p>
-                        <div className="mt-auto pt-3 border-t border-emerald-50">
-                           <span className="text-xs text-slate-400 font-medium">{t('Personalized from your current assessment profile', 'Персонализировано по результатам текущей диагностики')}</span>
-                        </div>
-                      </div>
-                    ))}
-                    {/* Placeholder for visual balance if odd number */}
-                    {assessmentResult.recommendations.length % 2 !== 0 && (
-                       <div className="bg-emerald-50/30 border-2 border-dashed border-emerald-100 rounded-2xl flex flex-col items-center justify-center text-emerald-600/50 p-4">
-                          <Sparkles className="w-8 h-8 mb-2 opacity-50" />
-                          <span className="text-xs font-bold">{t("You're building momentum", 'Вы на верном пути!')}</span>
-                       </div>
-                    )}
-                  </div>
-               </div>
-            </div>
-
-          </div>
-        )}
-      </div>
-    );
+    return <AssessmentViewV1 />;
   }
 
   if (activeTab === 'first_aid') {

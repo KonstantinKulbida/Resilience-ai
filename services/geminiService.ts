@@ -1,10 +1,17 @@
-import type { AIAnalysisResult, AppLanguage } from "../types";
+import type { AppLanguage } from '../types';
+import type { WorkSustainabilityResult } from '../assessmentModel';
+import { calculateAssessmentScores } from '../server/assessmentScoring';
+import {
+  buildFallbackInsight,
+  getDefaultActionIds,
+  resolveAction,
+} from '../server/assessmentActions';
 
 const postJson = async <T>(url: string, body: unknown): Promise<T> => {
   const response = await fetch(url, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
   });
@@ -22,31 +29,86 @@ export const getPersonalizedAdvice = async (
   language: AppLanguage
 ): Promise<string> => {
   try {
-    const data = await postJson<{ advice: string }>("/api/check-in", {
+    const data = await postJson<{ advice: string }>('/api/check-in', {
       mood,
       stressLevel,
       language,
     });
 
-    return data.advice || (language === 'ru'
-      ? "Не удалось получить рекомендацию."
-      : "We couldn't generate a recommendation right now.");
+    return (
+      data.advice ||
+      (language === 'ru'
+        ? 'Не удалось получить рекомендацию.'
+        : "We couldn't generate a recommendation right now.")
+    );
   } catch (error) {
-    console.error("AI API Error:", error);
+    console.error('AI API Error:', error);
     return language === 'ru'
-      ? "Сервис временно недоступен. Сделайте короткую паузу и попробуйте ещё раз чуть позже."
-      : "The AI service is temporarily unavailable. Take a short pause and try again in a moment.";
+      ? 'Сервис временно недоступен. Сделайте короткую паузу и попробуйте ещё раз чуть позже.'
+      : 'The AI service is temporarily unavailable. Take a short pause and try again in a moment.';
   }
+};
+
+const buildLocalAssessmentFallback = (
+  answers: Record<string, number>,
+  language: AppLanguage
+): WorkSustainabilityResult => {
+  const scores = calculateAssessmentScores(answers);
+  const actionIds = getDefaultActionIds(scores.weakestFactor);
+
+  return {
+    score: scores.score,
+    status: scores.status,
+    factors: scores.factors,
+    weakestFactor: scores.weakestFactor,
+    insight: buildFallbackInsight(scores, language),
+    actions: {
+      today: resolveAction(actionIds.today, language),
+      week: resolveAction(actionIds.week, language),
+      support: resolveAction(actionIds.support, language),
+    },
+    aiEnhanced: false,
+  };
 };
 
 export const analyzeAssessment = async (
   answers: Record<string, number>,
   language: AppLanguage
-): Promise<AIAnalysisResult | null> => {
+): Promise<WorkSustainabilityResult> => {
   try {
-    return await postJson<AIAnalysisResult>("/api/assessment", { answers, language });
+    const apiResult = await postJson<WorkSustainabilityResult>('/api/assessment', {
+      answers,
+      language,
+    });
+
+    // Numeric assessment data must always match the deterministic client calculation.
+    // If a stale or malformed backend payload disagrees, fall back rather than show
+    // contradictory scores, statuses, weakest-factor highlights, or actions.
+    const localScores = calculateAssessmentScores(answers);
+    const factorsMatch = (['workloadBalance', 'recovery', 'controlClarity'] as const).every(
+      (factor) =>
+        apiResult.factors?.[factor]?.score === localScores.factors[factor].score &&
+        apiResult.factors?.[factor]?.status === localScores.factors[factor].status
+    );
+    const payloadMatches =
+      apiResult.score === localScores.score &&
+      apiResult.status === localScores.status &&
+      apiResult.weakestFactor === localScores.weakestFactor &&
+      factorsMatch;
+
+    if (!payloadMatches) {
+      console.warn('Assessment API payload disagrees with deterministic scoring; using local fallback.');
+      return buildLocalAssessmentFallback(answers, language);
+    }
+
+    return apiResult;
   } catch (error) {
-    console.error("AI API Error:", error);
-    return null;
+    // Vite's local dev server does not run Vercel serverless /api routes.
+    // The deterministic assessment must still work even when the backend or AI is unavailable.
+    console.warn(
+      'Assessment API unavailable; using local deterministic fallback.',
+      error
+    );
+    return buildLocalAssessmentFallback(answers, language);
   }
 };
