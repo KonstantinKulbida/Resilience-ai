@@ -37,11 +37,15 @@ The project is intentionally scoped as a **prototype, not a production SaaS**. I
 
 ### AI check-in
 
-![AI-powered employee check-in](docs/screenshots/ai-checkin.webp)
+![AI-powered employee check-in](docs/screenshots/ai-checkin.png)
 
 ### Structured assessment result
 
-![Deterministic assessment with AI recommendations](docs/screenshots/assessment-results.webp)
+![Work Sustainability assessment with deterministic scoring and AI recommendations](docs/screenshots/assessment-results.png)
+
+### HR decision loop
+
+![Team Sustainability decision loop](docs/screenshots/hr-decision-loop.png)
 
 ## AI design
 
