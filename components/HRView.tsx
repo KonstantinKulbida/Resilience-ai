@@ -9,6 +9,43 @@ interface HRViewProps {
 
 const COLORS = ['#ef4444', '#f59e0b', '#10b981'];
 
+const SUSTAINABILITY_WEIGHTS = {
+  workloadBalance: 0.4,
+  recovery: 0.4,
+  controlClarity: 0.2,
+} as const;
+
+type TeamFactor = keyof typeof SUSTAINABILITY_WEIGHTS;
+
+const calculateTeamSustainability = (
+  factors: Record<TeamFactor, number>
+): number =>
+  Math.round(
+    (Object.keys(SUSTAINABILITY_WEIGHTS) as TeamFactor[]).reduce(
+      (sum, factor) =>
+        sum + factors[factor] * SUSTAINABILITY_WEIGHTS[factor],
+      0
+    )
+  );
+
+const getPrimaryTeamFactor = (
+  factors: Record<TeamFactor, number>
+): TeamFactor =>
+  (Object.keys(SUSTAINABILITY_WEIGHTS) as TeamFactor[]).reduce(
+    (primary, factor) => {
+      const primaryDrag =
+        SUSTAINABILITY_WEIGHTS[primary] *
+        (100 - factors[primary]);
+
+      const factorDrag =
+        SUSTAINABILITY_WEIGHTS[factor] *
+        (100 - factors[factor]);
+
+      return factorDrag > primaryDrag ? factor : primary;
+    }
+  );
+
+
 const HRView: React.FC<HRViewProps> = ({ activeTab }) => {
   const { t } = useLanguage();
   const [department, setDepartment] = useState<'All' | 'IT' | 'Sales'>('All');
@@ -16,70 +53,99 @@ const HRView: React.FC<HRViewProps> = ({ activeTab }) => {
 
   const dashboardData = useMemo(() => ({
     All: {
-      stats: [
-        { label: t('Participants', 'Участников'), value: '125', change: '+12%', positive: true, icon: Users },
-        { label: t('Stress reduction', 'Снижение стресса'), value: '32%', change: '-5%', positive: true, icon: Zap },
-        { label: t('Effectiveness lift', 'Рост эффективности'), value: '18%', change: '+4%', positive: true, icon: Briefcase },
-        { label: 'eNPS', value: '42', change: '+8', positive: true, icon: ArrowUpRight },
-      ],
-      trend: [
-        { name: t('W1', 'Н1'), stress: 85, productivity: 40 }, { name: t('W2', 'Н2'), stress: 80, productivity: 45 },
-        { name: t('W3', 'Н3'), stress: 72, productivity: 55 }, { name: t('W4', 'Н4'), stress: 65, productivity: 60 },
-        { name: t('W5', 'Н5'), stress: 58, productivity: 68 }, { name: t('W6', 'Н6'), stress: 45, productivity: 75 },
-        { name: t('W7', 'Н7'), stress: 40, productivity: 82 }, { name: t('W8', 'Н8'), stress: 35, productivity: 85 },
-      ],
-      risk: [
-        { name: t('High', 'Высокий'), value: 15 },
-        { name: t('Moderate', 'Средний'), value: 30 },
-        { name: t('Healthy range', 'Норма'), value: 55 },
-      ],
-      grades: [
-        { name: 'Junior', stress: 45 }, { name: 'Middle', stress: 62 }, { name: 'Senior', stress: 55 }, { name: 'Lead', stress: 78 },
-      ],
+      participation: { responses: 125, invited: 160, rate: 78 },
+      factors: {
+        workloadBalance: 56,
+        recovery: 61,
+        controlClarity: 72,
+      },
+      primaryIssue: t(
+        'Workload is exceeding available capacity often enough to make the current pace hard to sustain.',
+        'Нагрузка достаточно часто превышает доступные ресурсы, поэтому текущий темп становится трудно поддерживать.'
+      ),
+      intervention: {
+        title: t(
+          'Reduce active priority load for 2 weeks',
+          'Снизить число активных приоритетов на 2 недели'
+        ),
+        body: t(
+          'Limit teams to the top 3 active priorities and explicitly defer lower-value work instead of absorbing it.',
+          'Оставить у команд три главных активных приоритета, а менее важные задачи явно отложить, а не пытаться вместить их дополнительно.'
+        ),
+        owner: t('COO + department leads', 'COO + руководители направлений'),
+        recheck: t('Re-check in 10 days', 'Повторная оценка через 10 дней'),
+      },
+      outcome: {
+        baseline: 58,
+        label: t(
+          'Improving, but still below the stable range.',
+          'Есть улучшение, но команда пока не вышла в устойчивую зону.'
+        ),
+      },
     },
+
     IT: {
-      stats: [
-        { label: t('Participants', 'Участников'), value: '46', change: '+2%', positive: true, icon: Users },
-        { label: t('Stress reduction', 'Снижение стресса'), value: '15%', change: '-2%', positive: true, icon: Zap },
-        { label: t('Effectiveness lift', 'Рост эффективности'), value: '24%', change: '+12%', positive: true, icon: Briefcase },
-        { label: 'eNPS', value: '35', change: '-2', positive: false, icon: ArrowDownRight },
-      ],
-      trend: [
-        { name: t('W1', 'Н1'), stress: 90, productivity: 30 }, { name: t('W2', 'Н2'), stress: 88, productivity: 35 },
-        { name: t('W3', 'Н3'), stress: 85, productivity: 40 }, { name: t('W4', 'Н4'), stress: 70, productivity: 60 },
-        { name: t('W5', 'Н5'), stress: 65, productivity: 70 }, { name: t('W6', 'Н6'), stress: 50, productivity: 85 },
-        { name: t('W7', 'Н7'), stress: 45, productivity: 88 }, { name: t('W8', 'Н8'), stress: 42, productivity: 90 },
-      ],
-      risk: [
-        { name: t('High', 'Высокий'), value: 25 },
-        { name: t('Moderate', 'Средний'), value: 45 },
-        { name: t('Healthy range', 'Норма'), value: 30 },
-      ],
-      grades: [
-        { name: 'Junior', stress: 50 }, { name: 'Middle', stress: 65 }, { name: 'Senior', stress: 60 }, { name: 'Lead', stress: 85 },
-      ],
+      participation: { responses: 46, invited: 55, rate: 84 },
+      factors: {
+        workloadBalance: 38,
+        recovery: 57,
+        controlClarity: 68,
+      },
+      primaryIssue: t(
+        'The strongest constraint is workload balance: planned scope is consistently larger than the team can absorb sustainably.',
+        'Главное ограничение — баланс нагрузки: запланированный объём стабильно выше того, который команда может устойчиво выдерживать.'
+      ),
+      intervention: {
+        title: t(
+          'Reset sprint scope and work in progress',
+          'Снизить объём спринта и число параллельных задач'
+        ),
+        body: t(
+          'Freeze lower-priority work, reduce parallel initiatives, and require an explicit trade-off when urgent work is added.',
+          'Заморозить менее приоритетные задачи, сократить параллельные инициативы и при добавлении срочной работы явно определять, что будет отложено.'
+        ),
+        owner: t('VP Engineering', 'VP Engineering'),
+        recheck: t('Re-check in 7 days', 'Повторная оценка через 7 дней'),
+      },
+      outcome: {
+        baseline: 48,
+        label: t(
+          'Early improvement, but workload remains the main constraint.',
+          'Есть первые улучшения, но нагрузка всё ещё остаётся главным ограничением.'
+        ),
+      },
     },
+
     Sales: {
-      stats: [
-        { label: t('Participants', 'Участников'), value: '32', change: '+5%', positive: true, icon: Users },
-        { label: t('Stress reduction', 'Снижение стресса'), value: '45%', change: '-12%', positive: true, icon: Zap },
-        { label: t('Effectiveness lift', 'Рост эффективности'), value: '12%', change: '+1%', positive: true, icon: Briefcase },
-        { label: 'eNPS', value: '58', change: '+15', positive: true, icon: ArrowUpRight },
-      ],
-      trend: [
-        { name: t('W1', 'Н1'), stress: 70, productivity: 50 }, { name: t('W2', 'Н2'), stress: 65, productivity: 55 },
-        { name: t('W3', 'Н3'), stress: 50, productivity: 65 }, { name: t('W4', 'Н4'), stress: 45, productivity: 68 },
-        { name: t('W5', 'Н5'), stress: 40, productivity: 70 }, { name: t('W6', 'Н6'), stress: 35, productivity: 72 },
-        { name: t('W7', 'Н7'), stress: 30, productivity: 75 }, { name: t('W8', 'Н8'), stress: 25, productivity: 78 },
-      ],
-      risk: [
-        { name: t('High', 'Высокий'), value: 5 },
-        { name: t('Moderate', 'Средний'), value: 20 },
-        { name: t('Healthy range', 'Норма'), value: 75 },
-      ],
-      grades: [
-        { name: 'Junior', stress: 35 }, { name: 'Middle', stress: 55 }, { name: 'Senior', stress: 45 }, { name: 'Lead', stress: 60 },
-      ],
+      participation: { responses: 32, invited: 38, rate: 84 },
+      factors: {
+        workloadBalance: 71,
+        recovery: 66,
+        controlClarity: 88,
+      },
+      primaryIssue: t(
+        'The team is broadly stable, but recovery between high-intensity sales periods is the weakest part of the system.',
+        'Команда в целом находится в устойчивой зоне, но восстановление между интенсивными периодами продаж остаётся самым слабым элементом.'
+      ),
+      intervention: {
+        title: t(
+          'Protect recovery after peak sales windows',
+          'Защитить восстановление после пиковых периодов продаж'
+        ),
+        body: t(
+          'Create protected low-meeting blocks after peak periods and avoid immediately replacing finished campaigns with new urgent work.',
+          'После пиковых периодов выделять защищённые блоки с минимумом встреч и не заменять завершившиеся кампании новой срочной нагрузкой сразу.'
+        ),
+        owner: t('Head of Sales', 'Руководитель отдела продаж'),
+        recheck: t('Re-check in 14 days', 'Повторная оценка через 14 дней'),
+      },
+      outcome: {
+        baseline: 69,
+        label: t(
+          'Improved further within the stable range after the intervention.',
+          'После вмешательства показатель команды дополнительно улучшился в пределах устойчивой зоны.'
+        ),
+      },
     },
   }), [t]);
 
@@ -103,6 +169,16 @@ const HRView: React.FC<HRViewProps> = ({ activeTab }) => {
   ], [t]);
 
   const currentData = dashboardData[department] || dashboardData.All;
+
+  const currentTeamSustainability =
+    calculateTeamSustainability(currentData.factors);
+
+  const currentPrimaryFactor =
+    getPrimaryTeamFactor(currentData.factors);
+
+  const currentOutcomeDelta =
+    currentTeamSustainability - currentData.outcome.baseline;
+
   const filteredEmployees = employees.filter((employee) =>
     employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     employee.role.toLowerCase().includes(searchQuery.toLowerCase())
@@ -115,103 +191,327 @@ const HRView: React.FC<HRViewProps> = ({ activeTab }) => {
       : t('Sales', 'Отдел продаж');
 
   if (activeTab === 'dashboard') {
+    const statusFromScore = (score: number) => {
+      if (score >= 80) return 'green';
+      if (score >= 65) return 'stable';
+      if (score >= 45) return 'needs_attention';
+      return 'at_risk';
+    };
+
+    const statusLabel = (score: number) => {
+      const status = statusFromScore(score);
+
+      return {
+        green: t('Green zone', 'Зелёная зона'),
+        stable: t('Stable', 'Устойчиво'),
+        needs_attention: t('Needs attention', 'Требует внимания'),
+        at_risk: t('At risk', 'Зона риска'),
+      }[status];
+    };
+
+    const statusClasses = (score: number) => {
+      const status = statusFromScore(score);
+
+      return {
+        green: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+        stable: 'bg-sky-100 text-sky-700 border-sky-200',
+        needs_attention: 'bg-amber-100 text-amber-800 border-amber-200',
+        at_risk: 'bg-rose-100 text-rose-700 border-rose-200',
+      }[status];
+    };
+
+    const factorLabels = {
+      workloadBalance: t('Workload balance', 'Баланс нагрузки'),
+      recovery: t('Recovery', 'Восстановление'),
+      controlClarity: t('Control & clarity', 'Контроль и ясность'),
+    };
+
+    const factorWeights = {
+      workloadBalance: 40,
+      recovery: 40,
+      controlClarity: 20,
+    };
+
     return (
-      <div key="dashboard" className="space-y-6 max-w-7xl pb-10 animate-enter min-w-0">
+      <div
+        key="dashboard"
+        className="space-y-6 max-w-7xl pb-10 animate-enter min-w-0"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">{t('Workforce overview', 'Обзор метрик')}</h2>
-            <p className="text-xs text-slate-500 mt-1">{t('Synthetic demo data • HR only sees aggregated wellbeing indicators', 'Synthetic demo data • HR получает только агрегированные wellbeing-показатели')}</p>
+            <h2 className="text-xl font-bold text-slate-900">
+              {t('Team Sustainability', 'Устойчивость команды')}
+            </h2>
+            <p className="text-xs text-slate-500 mt-1">
+              {t(
+                'Synthetic demo data · aggregated team signals only · minimum 5 responses',
+                'Synthetic demo data · только агрегированные командные сигналы · минимум 5 ответов'
+              )}
+            </p>
           </div>
+
           <div className="relative w-full sm:w-auto">
             <select
               value={department}
-              onChange={(event) => setDepartment(event.target.value as 'All' | 'IT' | 'Sales')}
+              onChange={(event) =>
+                setDepartment(event.target.value as 'All' | 'IT' | 'Sales')
+              }
               className="w-full sm:w-auto appearance-none bg-white/40 backdrop-blur-md border border-white/60 text-slate-700 py-2.5 pl-5 pr-10 rounded-2xl text-sm focus:outline-none focus:border-teal-400 hover:bg-white/60 transition-colors shadow-sm"
             >
               <option value="All">{t('All departments', 'Все отделы')}</option>
-              <option value="IT">{t('Product & Engineering', 'IT Разработка')}</option>
+              <option value="IT">
+                {t('Product & Engineering', 'IT Разработка')}
+              </option>
               <option value="Sales">{t('Sales', 'Отдел продаж')}</option>
             </select>
+
             <ChevronDown className="w-3 h-3 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
-          {currentData.stats.map((stat, index) => (
-            <div key={index} className="bg-white/40 backdrop-blur-xl p-5 sm:p-6 rounded-[2rem] border border-white/50 shadow-lg shadow-indigo-500/5 min-w-0">
-              <div className="flex justify-between items-center gap-2 mb-3">
-                <p className="text-sm text-slate-500 font-semibold">{stat.label}</p>
-                <stat.icon className="w-4 h-4 text-slate-400 flex-shrink-0" />
+        <section className="grid lg:grid-cols-[1.4fr_0.8fr] gap-5">
+          <div className="bg-white/55 backdrop-blur-xl rounded-[2.25rem] p-6 sm:p-8 border border-white/70 shadow-xl shadow-indigo-500/5">
+            <p className="text-sm font-semibold text-slate-500 mb-3">
+              {t('Team Sustainability', 'Устойчивость команды')}
+            </p>
+
+            <div className="flex flex-wrap items-end gap-4">
+              <span className="text-6xl font-bold text-slate-950">
+                {currentTeamSustainability}
+              </span>
+              <span className="text-lg text-slate-400 mb-2">/ 100</span>
+
+              <span
+                className={`mb-2 px-3 py-1.5 rounded-full border text-sm font-bold ${statusClasses(
+                  currentTeamSustainability
+                )}`}
+              >
+                {statusLabel(currentTeamSustainability)}
+              </span>
+            </div>
+
+            <p className="mt-4 text-sm text-slate-600 max-w-2xl leading-relaxed">
+              {t(
+                'A deterministic aggregate of workload balance, recovery, and control & clarity. Higher is better.',
+                'Детерминированный агрегированный показатель баланса нагрузки, восстановления, контроля и ясности. Чем выше, тем лучше.'
+              )}
+            </p>
+
+            <div className="mt-6 h-2 rounded-full bg-slate-200/80 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-slate-900"
+                style={{ width: `${currentTeamSustainability}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="bg-white/45 backdrop-blur-xl rounded-[2.25rem] p-6 sm:p-8 border border-white/60 shadow-lg shadow-indigo-500/5">
+            <p className="text-sm font-semibold text-slate-500">
+              {t('Participation', 'Участие')}
+            </p>
+
+            <div className="mt-3 text-4xl font-bold text-slate-900">
+              {currentData.participation.rate}%
+            </div>
+
+            <p className="mt-2 text-sm text-slate-600">
+              {currentData.participation.responses} /{' '}
+              {currentData.participation.invited}{' '}
+              {t('responses', 'ответов')}
+            </p>
+
+            <div className="mt-5 rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2 text-xs font-semibold text-emerald-700">
+              {t(
+                'Privacy threshold met · aggregated view enabled',
+                'Порог конфиденциальности соблюдён · агрегированный просмотр доступен'
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-slate-900">
+              {t('What is driving the signal', 'Что формирует сигнал')}
+            </h3>
+            <p className="text-sm text-slate-500 mt-1">
+              {t(
+                'The same three factors used in the employee assessment.',
+                'Те же три фактора, которые используются в оценке сотрудника.'
+              )}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {(
+              [
+                'workloadBalance',
+                'recovery',
+                'controlClarity',
+              ] as const
+            ).map((factor) => {
+              const score = currentData.factors[factor];
+              const isPrimary = factor === currentPrimaryFactor;
+
+              return (
+                <article
+                  key={factor}
+                  className={`rounded-[2rem] p-5 sm:p-6 border shadow-sm ${
+                    isPrimary
+                      ? 'bg-white/75 border-rose-200 ring-2 ring-rose-100'
+                      : 'bg-white/45 border-white/60'
+                  }`}
+                >
+                  <div className="flex justify-between gap-3">
+                    <div>
+                      <h4 className="font-bold text-slate-900">
+                        {factorLabels[factor]}
+                      </h4>
+
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        {factorWeights[factor]}%{' '}
+                        {t('weight', 'вес')}
+                      </p>
+                    </div>
+
+                    {isPrimary && (
+                      <span className="h-fit rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-rose-700 border border-rose-100">
+                        {t('Primary issue', 'Главная проблема')}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-5 flex items-end gap-2">
+                    <span className="text-4xl font-bold text-slate-900">
+                      {score}
+                    </span>
+                    <span className="text-sm text-slate-400 mb-1">/ 100</span>
+                  </div>
+
+                  <div className="mt-3 h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-slate-800"
+                      style={{ width: `${score}%` }}
+                    />
+                  </div>
+
+                  <span
+                    className={`inline-flex mt-4 px-2.5 py-1 rounded-full border text-[11px] font-bold ${statusClasses(
+                      score
+                    )}`}
+                  >
+                    {statusLabel(score)}
+                  </span>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="grid lg:grid-cols-2 gap-5">
+          <div className="bg-rose-50/70 border border-rose-100 rounded-[2rem] p-6 sm:p-7">
+            <p className="text-xs uppercase tracking-wider font-bold text-rose-600">
+              {t('Primary issue', 'Главная проблема')}
+            </p>
+
+            <h3 className="mt-2 text-xl font-bold text-slate-900">
+              {factorLabels[currentPrimaryFactor]}
+            </h3>
+
+            <p className="mt-3 text-sm text-slate-700 leading-relaxed">
+              {currentData.primaryIssue}
+            </p>
+
+            <p className="mt-4 text-xs text-slate-500">
+              {t(
+                'Primary issue is the factor with the largest weighted impact on the overall Team Sustainability score.',
+                'Главная проблема — фактор с наибольшим взвешенным влиянием на общий Team Sustainability.'
+              )}
+            </p>
+          </div>
+
+          <div className="bg-indigo-50/70 border border-indigo-100 rounded-[2rem] p-6 sm:p-7">
+            <p className="text-xs uppercase tracking-wider font-bold text-indigo-600">
+              {t(
+                'Recommended intervention',
+                'Рекомендуемое действие'
+              )}
+            </p>
+
+            <h3 className="mt-2 text-xl font-bold text-slate-900">
+              {currentData.intervention.title}
+            </h3>
+
+            <p className="mt-3 text-sm text-slate-700 leading-relaxed">
+              {currentData.intervention.body}
+            </p>
+
+            <div className="mt-5 grid sm:grid-cols-2 gap-3">
+              <div className="rounded-xl bg-white/70 border border-white p-3">
+                <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
+                  {t('Owner', 'Ответственный')}
+                </p>
+                <p className="mt-1 text-sm font-bold text-slate-800">
+                  {currentData.intervention.owner}
+                </p>
               </div>
-              <div className="flex items-end gap-3">
-                <h3 className="text-3xl font-bold text-slate-900">{stat.value}</h3>
-                <span className={`text-xs font-bold py-1 px-2 rounded-lg mb-1 flex items-center ${stat.positive ? 'bg-emerald-100/50 text-emerald-700' : 'bg-red-100/50 text-red-700'}`}>
-                  {stat.positive ? '↑' : '↓'} {stat.change}
+
+              <div className="rounded-xl bg-white/70 border border-white p-3">
+                <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
+                  {t('Re-check', 'Повторная оценка')}
+                </p>
+                <p className="mt-1 text-sm font-bold text-slate-800">
+                  {currentData.intervention.recheck}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-white/55 backdrop-blur-xl rounded-[2rem] p-6 sm:p-7 border border-white/70 shadow-lg shadow-indigo-500/5">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+            <div>
+              <p className="text-xs uppercase tracking-wider font-bold text-slate-400">
+                {t('Outcome after re-check', 'Результат после повторной оценки')}
+              </p>
+
+              <div className="mt-3 flex items-end gap-3">
+                <span className="text-3xl font-bold text-slate-900">
+                  {currentData.outcome.baseline}
+                </span>
+
+                <ArrowUpRight className="w-5 h-5 text-emerald-600 mb-1" />
+
+                <span className="text-4xl font-bold text-slate-900">
+                  {currentTeamSustainability}
+                </span>
+
+                <span className="mb-1 rounded-full bg-emerald-100 text-emerald-700 px-2.5 py-1 text-xs font-bold">
+                  {`${currentOutcomeDelta >= 0 ? '+' : ''}${currentOutcomeDelta}`}
                 </span>
               </div>
-            </div>
-          ))}
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-white/40 backdrop-blur-xl p-5 sm:p-6 rounded-[2rem] border border-white/50 shadow-lg shadow-indigo-500/5 min-w-0">
-            <h3 className="text-base font-bold text-slate-900 mb-6">{t('Wellbeing & effectiveness trend', 'Динамика показателей')}</h3>
-            <div className="h-64 sm:h-72 min-w-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={currentData.trend} margin={{ top: 0, right: 4, left: -24, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorStress" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ef4444" stopOpacity={0.2}/><stop offset="95%" stopColor="#ef4444" stopOpacity={0}/></linearGradient>
-                    <linearGradient id="colorProd" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/></linearGradient>
-                  </defs>
-                  <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.9)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }} />
-                  <Legend iconType="circle" />
-                  <Area type="monotone" dataKey="stress" name={t('Stress', 'Стресс')} stroke="#ef4444" fill="url(#colorStress)" strokeWidth={3} />
-                  <Area type="monotone" dataKey="productivity" name={t('Effectiveness', 'Эффективность')} stroke="#10b981" fill="url(#colorProd)" strokeWidth={3} />
-                </AreaChart>
-              </ResponsiveContainer>
+              <p className="mt-3 text-sm text-slate-600">
+                {currentData.outcome.label}
+              </p>
+            </div>
+
+            <div className="md:text-right">
+              <p className="text-sm font-bold text-slate-900">
+                {t(
+                  'Signal → action → re-check → outcome',
+                  'Сигнал → действие → повторная оценка → результат'
+                )}
+              </p>
+              <p className="text-xs text-slate-500 mt-1 max-w-sm">
+                {t(
+                  'This demonstrates the decision loop. Synthetic demo data is not evidence of causal impact.',
+                  'Это демонстрация decision loop. Synthetic demo data не является доказательством причинного эффекта.'
+                )}
+              </p>
             </div>
           </div>
-
-          <div className="bg-white/40 backdrop-blur-xl p-5 sm:p-6 rounded-[2rem] border border-white/50 shadow-lg shadow-indigo-500/5 flex flex-col justify-center relative overflow-hidden min-w-0">
-            <h3 className="text-base font-bold text-slate-900 mb-1 z-10">{t('Aggregated burnout risk', 'Агрегированный риск выгорания')}</h3>
-            <p className="text-xs text-slate-500 mb-3 z-10">{t('Individual assessment scores are never shown to HR', 'Без раскрытия индивидуальных assessment scores')}</p>
-            <div className="h-56 relative z-10 min-w-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={currentData.risk} cx="50%" cy="50%" innerRadius={58} outerRadius={78} paddingAngle={4} dataKey="value" stroke="none">
-                    {currentData.risk.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={8} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none mb-8">
-                <div className="text-center"><span className="text-3xl font-bold text-slate-900">{currentData.risk[0].value}%</span><p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{t('High risk', 'Высокий риск')}</p></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white/40 backdrop-blur-xl p-5 sm:p-6 rounded-[2rem] border border-white/50 shadow-lg shadow-indigo-500/5 min-w-0">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-6">
-            <h3 className="text-base font-bold text-slate-900">{t('Stress level by seniority', 'Уровень стресса по грейдам')} ({departmentLabel})</h3>
-            <div className="text-xs text-slate-500 bg-white/40 px-3 py-1 rounded-full border border-white/50 w-fit">{t('30-day average', 'Среднее значение за 30 дней')}</div>
-          </div>
-          <div className="h-60 sm:h-64 min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={currentData.grades} margin={{ top: 0, right: 0, left: -24, bottom: 0 }} barSize={48}>
-                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                <Tooltip cursor={{ fill: 'rgba(255,255,255,0.2)' }} contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.9)', color: '#0f172a' }} />
-                <Bar dataKey="stress" name={t('Stress level (%)', 'Уровень стресса (%)')} radius={[12, 12, 0, 0]}>
-                  {currentData.grades.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.stress > 70 ? '#ef4444' : entry.stress > 50 ? '#f59e0b' : '#3b82f6'} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        </section>
       </div>
     );
   }
