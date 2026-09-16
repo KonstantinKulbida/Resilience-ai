@@ -1,33 +1,37 @@
 # Resilience.ai
 
-**AI-enabled B2B HRTech prototype for employee burnout prevention and workforce resilience.**
+**AI-enabled B2B HRTech prototype for work sustainability and workforce resilience.**
 
 **Live demo:** https://resilience-ai-eta.vercel.app
 
-Resilience.ai is a portfolio-grade product prototype that demonstrates how an employee wellbeing hypothesis can be turned into a working AI-enabled product without waiting for a full engineering team.
+**Release notes:** [RELEASE_NOTES.md](RELEASE_NOTES.md)
+
+Resilience.ai is a portfolio-grade product prototype that demonstrates how employee work-sustainability signals can be turned into a working employee and HR decision loop without waiting for a full engineering team.
 
 The project is intentionally scoped as a **prototype, not a production SaaS**. It focuses on the product flows, AI architecture, assessment logic, HR analytics and privacy decisions that are most useful for validating the concept and discussing it in product interviews.
 
-> **Portfolio note:** all employee and HR data shown in the demo is synthetic. The self-assessment is a custom non-clinical screening and is not a medical diagnostic tool.
+> **Portfolio note:** HR/team data shown in the demo is synthetic. The employee assessment is a custom non-clinical Work Sustainability check and is not a medical diagnostic tool.
 
 ## Live product flows
 
 ### Employee experience
 - Mood / stress check-in
 - AI-generated personalized recommendation
-- 12-question resilience / burnout-risk self-assessment
-- Deterministic scoring across three dimensions
+- 12-question Work Sustainability assessment
+- Three factors: **Workload balance, Recovery, Control & clarity**
+- Deterministic 0–100 scoring with fixed **40 / 40 / 20** weights
 - AI-generated interpretation and personalized next steps
 - 12-week resilience program
 - Insights, notes and stress first-aid content
 
 ### HR experience
-- Aggregated workforce wellbeing dashboard
-- Stress, productivity and participation trends
-- Department-level analytics
-- Program engagement overview
-- Privacy-aware team view without individual burnout scores
-- Synthetic report examples
+- Privacy-safe aggregated **Team Sustainability** view
+- Workload balance / Recovery / Control & clarity drivers
+- Participation and minimum 5-response privacy threshold
+- Deterministic primary issue
+- Recommended intervention, owner and 7–14 day re-check
+- Before / after outcome
+- Department-level synthetic demo scenarios
 
 ## Screenshots
 
@@ -49,7 +53,7 @@ flowchart LR
     B --> C{Request type}
     C -->|Check-in| D[Gemini 3.6 Flash]
     C -->|Assessment| E[Deterministic scoring]
-    E --> F[Exhaustion / Cynicism / Inefficacy / Overall risk]
+    E --> F[Workload balance / Recovery / Control & clarity]
     F --> D
     D --> G[Validated structured output]
     G --> A
@@ -80,28 +84,57 @@ POST /api/assessment
 
 ## Assessment logic
 
-The 12-item custom screening produces four deterministic values on a 0–100 scale:
+The 12-item custom assessment measures three Work Sustainability factors on a 0–100 scale:
 
-- Emotional exhaustion
-- Cynicism / distancing
-- Perceived inefficacy
-- Overall burnout-risk score
+- **Workload balance** — 4 questions
+- **Recovery** — 4 questions
+- **Control & clarity** — 4 questions
 
-Positive statements are reverse-scored. Each conceptual dimension has equal weight in the overall result even though the dimensions contain different numbers of questions.
+Responses use a 1–5 scale covering the previous two weeks.
 
-The resulting metrics are then passed to Gemini for:
+Positive items are normalized as `1→0, 2→25, 3→50, 4→75, 5→100`.
 
-- a short qualitative summary;
-- possible productivity impact;
-- 3–4 personalized, low-risk next steps.
+Reverse-coded items first use `effective = 6 - answer` and then the same normalization.
+
+Overall Work Sustainability is calculated deterministically:
+
+`Work Sustainability = 0.4 × Workload balance + 0.4 × Recovery + 0.2 × Control & clarity`
+
+Higher is better.
+
+Status bands:
+
+- **80–100** — Green zone
+- **65–79** — Stable
+- **45–64** — Needs attention
+- **0–44** — At risk
+
+The primary pressure factor is selected by weighted impact on the overall score, not simply by the lowest raw factor score.
+
+Gemini does **not** calculate or change numeric scores. It receives the deterministic result and is used only for qualitative interpretation and allowed next-step actions.
+
+This is a **product heuristic**, not a clinical or diagnostic model.
+
+## HR decision loop
+
+The HR dashboard mirrors the employee model using synthetic aggregated team data:
+
+**Team Sustainability → 3 drivers → primary issue → recommended intervention → owner → re-check → outcome**
+
+The demo uses a minimum **5-response privacy threshold** before aggregated team signals are shown.
+
+Synthetic outcomes demonstrate the decision loop only and are not evidence of causal impact.
+
+Survey-derived sustainability signals are not translated directly into FTE or staffing requirements.
 
 ## Product / privacy choices
 
 A few choices are intentional and part of the product case:
 
-- HR sees **aggregated wellbeing metrics**, not individual employee burnout scores.
+- HR sees **aggregated team sustainability signals**, not individual employee assessment results.
+- Aggregated HR signals require at least **5 responses**.
 - Demo/history data is explicitly marked as synthetic.
-- The employee assessment is described as a wellbeing self-assessment, not a clinical diagnosis.
+- The employee assessment is described as a Work Sustainability check, not a clinical diagnosis.
 - Placeholder actions that would imply non-existent functionality were removed rather than faked.
 - Browser history and deep links work for the main employee and HR routes.
 
@@ -200,4 +233,4 @@ This project is intended as evidence of **hands-on AI product prototyping** by a
 
 ---
 
-**Resilience.ai** — portfolio prototype for employee burnout prevention and workforce resilience.
+**Resilience.ai** — portfolio prototype for work sustainability and workforce resilience.
