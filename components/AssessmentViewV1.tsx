@@ -82,20 +82,20 @@ const AssessmentViewV1: React.FC = () => {
 
   const overallStatusLabel = (status: SustainabilityStatus) => {
     const labels: Record<SustainabilityStatus, string> = {
-      green: t('Strong sustainability', 'Высокая устойчивость'),
+      green: t('Green zone', 'Зелёная зона'),
       stable: t('Stable', 'Устойчиво'),
       needs_attention: t('Needs attention', 'Требует внимания'),
-      at_risk: t('Low sustainability', 'Низкая устойчивость'),
+      at_risk: t('At risk', 'Зона риска'),
     };
     return labels[status];
   };
 
   const factorStatusLabel = (status: SustainabilityStatus) => {
     const labels: Record<SustainabilityStatus, string> = {
-      green: t('Strong', 'Сильная сторона'),
+      green: t('Green zone', 'Зелёная зона'),
       stable: t('Stable', 'Устойчиво'),
       needs_attention: t('Needs attention', 'Требует внимания'),
-      at_risk: t('Priority area', 'Приоритетная зона'),
+      at_risk: t('At risk', 'Зона риска'),
     };
     return labels[status];
   };
@@ -253,7 +253,7 @@ const AssessmentViewV1: React.FC = () => {
             </h2>
             <p className="text-slate-600 max-w-2xl leading-relaxed">
               {t(
-                'Think about the past 2 weeks. How true has each statement been for you?',
+                'Thinking about the past 2 weeks, how true has each statement been for you?',
                 'Вспомните последние 2 недели. Насколько каждое утверждение было верно для вас?'
               )}
             </p>
@@ -336,9 +336,7 @@ const AssessmentViewV1: React.FC = () => {
   }
 
   const displayStatus = statusFromScore(result.score);
-  const displayWeakestFactor = FACTORS.reduce((weakest, factor) =>
-    result.factors[factor].score < result.factors[weakest].score ? factor : weakest
-  );
+  const displayWeakestFactor = result.weakestFactor;
 
   return (
     <div ref={topRef} className="max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-10 animate-enter">
@@ -425,8 +423,8 @@ const AssessmentViewV1: React.FC = () => {
           </h2>
           <p className="text-slate-500 mt-1">
             {t(
-              'These three factors have the biggest impact on how sustainable work feels right now.',
-              'Эти три фактора сильнее всего влияют на то, насколько устойчивым сейчас ощущается ваш рабочий режим.'
+              'These three factors make up your Work Sustainability score.',
+              'Из этих трёх факторов складывается ваш показатель Work Sustainability.'
             )}
           </p>
         </div>

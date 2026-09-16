@@ -116,9 +116,9 @@ Overall Work Sustainability: ${scores.score}/100 (${scores.status}).
 Workload balance: ${scores.factors.workloadBalance.score}/100.
 Recovery: ${scores.factors.recovery.score}/100.
 Control & clarity: ${scores.factors.controlClarity.score}/100.
-Weakest factor: ${scores.weakestFactor}.
+Primary pressure factor (largest weighted drag on the overall score): ${scores.weakestFactor}.
 
-Lowest-scoring statements inside the weakest factor:
+Lowest-scoring statements inside that factor:
 ${questionSignals}
 
 Return:

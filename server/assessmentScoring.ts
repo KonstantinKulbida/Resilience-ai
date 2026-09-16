@@ -25,13 +25,17 @@ const FACTOR_ORDER: SustainabilityFactor[] = [
   'controlClarity',
 ];
 
+const FACTOR_WEIGHTS: Record<SustainabilityFactor, number> = {
+  workloadBalance: 0.4,
+  recovery: 0.4,
+  controlClarity: 0.2,
+};
+
+
 const normalizeAnswer = (answer: number, reverse = false): number => {
   const sustainabilityOrientedAnswer = reverse ? 6 - answer : answer;
   return Math.round(((sustainabilityOrientedAnswer - 1) / 4) * 100);
 };
-
-const average = (values: number[]): number =>
-  Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
 
 export const getSustainabilityStatus = (score: number): SustainabilityStatus => {
   if (score >= 80) return 'green';
@@ -39,6 +43,20 @@ export const getSustainabilityStatus = (score: number): SustainabilityStatus => 
   if (score >= 45) return 'needs_attention';
   return 'at_risk';
 };
+
+const getPrimaryPressureFactor = (
+  scores: Record<SustainabilityFactor, number>
+): SustainabilityFactor =>
+  FACTOR_ORDER.reduce((primary, factor) => {
+    const primaryDrag =
+      FACTOR_WEIGHTS[primary] * (100 - scores[primary]);
+    const factorDrag =
+      FACTOR_WEIGHTS[factor] * (100 - scores[factor]);
+
+    // Larger weighted deficit means a larger drag on Work Sustainability.
+    // Exact ties fall back to FACTOR_ORDER for deterministic behaviour.
+    return factorDrag > primaryDrag ? factor : primary;
+  });
 
 export const calculateAssessmentScores = (
   answers: Record<string, number>
@@ -56,20 +74,34 @@ export const calculateAssessmentScores = (
     return { id: question.id, factor: question.factor, score };
   });
 
+  const rawFactorScores = FACTOR_ORDER.reduce((result, factor) => {
+    result[factor] =
+      buckets[factor].reduce((sum, value) => sum + value, 0) /
+      buckets[factor].length;
+
+    return result;
+  }, {} as Record<SustainabilityFactor, number>);
+
   const factors = FACTOR_ORDER.reduce((result, factor) => {
-    const score = average(buckets[factor]);
-    result[factor] = { score, status: getSustainabilityStatus(score) };
+    const factorScore = Math.round(rawFactorScores[factor]);
+
+    result[factor] = {
+      score: factorScore,
+      status: getSustainabilityStatus(factorScore),
+    };
+
     return result;
   }, {} as Record<SustainabilityFactor, { score: number; status: SustainabilityStatus }>);
 
   const score = Math.round(
-    FACTOR_ORDER.reduce((sum, factor) => sum + factors[factor].score, 0) /
-      FACTOR_ORDER.length
+    FACTOR_ORDER.reduce(
+      (sum, factor) =>
+        sum + FACTOR_WEIGHTS[factor] * rawFactorScores[factor],
+      0
+    )
   );
 
-  const weakestFactor = FACTOR_ORDER.reduce((weakest, factor) =>
-    factors[factor].score < factors[weakest].score ? factor : weakest
-  );
+  const weakestFactor = getPrimaryPressureFactor(rawFactorScores);
 
   const weakestQuestionIds = questionScores
     .filter((item) => item.factor === weakestFactor)
