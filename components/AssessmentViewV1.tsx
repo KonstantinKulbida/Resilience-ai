@@ -1,4 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   AlertTriangle,
   ArrowDown,
@@ -23,19 +28,82 @@ const FACTORS: SustainabilityFactor[] = [
   'controlClarity',
 ];
 
+const scrollToSection = (
+  target: HTMLElement | null,
+  offset = 24
+) => {
+  if (!target) return;
+
+  const scrollContainer =
+    target.closest('main') as HTMLElement | null;
+
+  if (!scrollContainer) {
+    target.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+    return;
+  }
+
+  const containerRect =
+    scrollContainer.getBoundingClientRect();
+
+  const targetRect =
+    target.getBoundingClientRect();
+
+  const targetTop =
+    scrollContainer.scrollTop +
+    targetRect.top -
+    containerRect.top -
+    offset;
+
+  scrollContainer.scrollTo({
+    top: Math.max(0, targetTop),
+    left: 0,
+    behavior: 'smooth',
+  });
+};
+
 const AssessmentViewV1: React.FC = () => {
-  const { language, t, locale } = useLanguage();
+  const {
+    language,
+    t,
+    locale,
+  } = useLanguage();
 
-  const [answers, setAnswers] = useState<Record<number, number>>({});
-  const [result, setResult] = useState<WorkSustainabilityResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [resultStep, setResultStep] = useState<1 | 2 | 3 | 4>(1);
+  const [answers, setAnswers] =
+    useState<Record<number, number>>({});
 
-  const topRef = useRef<HTMLDivElement>(null);
-  const driversRef = useRef<HTMLElement>(null);
-  const insightRef = useRef<HTMLElement>(null);
-  const actionsRef = useRef<HTMLElement>(null);
+  const [result, setResult] =
+    useState<WorkSustainabilityResult | null>(
+      null
+    );
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  const [
+    resultStep,
+    setResultStep,
+  ] = useState<1 | 2 | 3 | 4 | 5>(1);
+
+  const topRef =
+    useRef<HTMLDivElement>(null);
+
+  const driversRef =
+    useRef<HTMLElement>(null);
+
+  const insightRef =
+    useRef<HTMLElement>(null);
+
+  const actionsRef =
+    useRef<HTMLElement>(null);
+
+  const finalRef =
+    useRef<HTMLElement>(null);
 
   useEffect(() => {
     setResult(null);
@@ -46,97 +114,189 @@ const AssessmentViewV1: React.FC = () => {
   useEffect(() => {
     if (!result) return;
 
-    const frame = window.requestAnimationFrame(() => {
-      topRef.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
-    });
+    let secondFrame = 0;
 
-    return () => window.cancelAnimationFrame(frame);
+    const firstFrame =
+      window.requestAnimationFrame(() => {
+        secondFrame =
+          window.requestAnimationFrame(() => {
+            scrollToSection(
+              topRef.current,
+              16
+            );
+          });
+      });
+
+    return () => {
+      window.cancelAnimationFrame(
+        firstFrame
+      );
+
+      if (secondFrame) {
+        window.cancelAnimationFrame(
+          secondFrame
+        );
+      }
+    };
   }, [result]);
 
   useEffect(() => {
-    if (!result || resultStep === 1) return;
+    if (
+      !result ||
+      resultStep === 1
+    ) {
+      return;
+    }
 
     const target =
       resultStep === 2
-        ? driversRef
+        ? driversRef.current
         : resultStep === 3
-          ? insightRef
-          : actionsRef;
+          ? insightRef.current
+          : resultStep === 4
+            ? actionsRef.current
+            : finalRef.current;
 
-    const frame = window.requestAnimationFrame(() => {
-      target.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
+    let secondFrame = 0;
+
+    const firstFrame =
+      window.requestAnimationFrame(() => {
+        secondFrame =
+          window.requestAnimationFrame(() => {
+            scrollToSection(
+              target,
+              24
+            );
+          });
       });
-    });
 
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(
+        firstFrame
+      );
+
+      if (secondFrame) {
+        window.cancelAnimationFrame(
+          secondFrame
+        );
+      }
+    };
   }, [result, resultStep]);
 
-  const questions = useMemo(
-    () =>
-      ASSESSMENT_QUESTIONS.map((question) => ({
-        ...question,
-        text: language === 'ru' ? question.ru : question.en,
-      })),
-    [language]
-  );
+  const questions =
+    useMemo(
+      () =>
+        ASSESSMENT_QUESTIONS.map(
+          (question) => ({
+            ...question,
+            text:
+              language === 'ru'
+                ? question.ru
+                : question.en,
+          })
+        ),
+      [language]
+    );
 
-  const statusFromScore = (score: number): SustainabilityStatus => {
-    if (score >= 80) return 'green';
-    if (score >= 65) return 'stable';
-    if (score >= 45) return 'needs_attention';
+  const statusFromScore = (
+    score: number
+  ): SustainabilityStatus => {
+    if (score >= 80)
+      return 'green';
+
+    if (score >= 65)
+      return 'stable';
+
+    if (score >= 45)
+      return 'needs_attention';
+
     return 'at_risk';
   };
 
-  const overallStatusLabel = (status: SustainabilityStatus) => {
-    const labels: Record<SustainabilityStatus, string> = {
-      green: t('Green zone', 'Зелёная зона'),
-      stable: t('Stable', 'Устойчиво'),
-      needs_attention: t('Needs attention', 'Требует внимания'),
-      at_risk: t('At risk', 'Зона риска'),
+  const overallStatusLabel = (
+    status: SustainabilityStatus
+  ) => {
+    const labels: Record<
+      SustainabilityStatus,
+      string
+    > = {
+      green: t(
+        'Green zone',
+        'Зелёная зона'
+      ),
+      stable: t(
+        'Stable',
+        'Устойчиво'
+      ),
+      needs_attention: t(
+        'Needs attention',
+        'Требует внимания'
+      ),
+      at_risk: t(
+        'At risk',
+        'Зона риска'
+      ),
     };
 
     return labels[status];
   };
 
-  const factorStatusLabel = (status: SustainabilityStatus) => {
-    const labels: Record<SustainabilityStatus, string> = {
-      green: t('Green zone', 'Зелёная зона'),
-      stable: t('Stable', 'Устойчиво'),
-      needs_attention: t('Needs attention', 'Требует внимания'),
-      at_risk: t('At risk', 'Зона риска'),
-    };
+  const factorStatusLabel = (
+    status: SustainabilityStatus
+  ) =>
+    overallStatusLabel(status);
 
-    return labels[status];
-  };
-
-  const statusClasses = (status: SustainabilityStatus) => {
-    const classes: Record<SustainabilityStatus, string> = {
-      green: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-      stable: 'bg-sky-100 text-sky-700 border-sky-200',
-      needs_attention: 'bg-amber-100 text-amber-800 border-amber-200',
-      at_risk: 'bg-rose-100 text-rose-700 border-rose-200',
+  const statusClasses = (
+    status: SustainabilityStatus
+  ) => {
+    const classes: Record<
+      SustainabilityStatus,
+      string
+    > = {
+      green:
+        'bg-emerald-100 text-emerald-700 border-emerald-200',
+      stable:
+        'bg-sky-100 text-sky-700 border-sky-200',
+      needs_attention:
+        'bg-amber-100 text-amber-800 border-amber-200',
+      at_risk:
+        'bg-rose-100 text-rose-700 border-rose-200',
     };
 
     return classes[status];
   };
 
-  const factorLabel = (factor: SustainabilityFactor) => {
-    const labels: Record<SustainabilityFactor, string> = {
-      workloadBalance: t('Workload balance', 'Баланс нагрузки'),
-      recovery: t('Recovery', 'Восстановление'),
-      controlClarity: t('Control & clarity', 'Контроль и ясность'),
+  const factorLabel = (
+    factor: SustainabilityFactor
+  ) => {
+    const labels: Record<
+      SustainabilityFactor,
+      string
+    > = {
+      workloadBalance: t(
+        'Workload balance',
+        'Баланс нагрузки'
+      ),
+      recovery: t(
+        'Recovery',
+        'Восстановление'
+      ),
+      controlClarity: t(
+        'Control & clarity',
+        'Контроль и ясность'
+      ),
     };
 
     return labels[factor];
   };
 
-  const heroCopy = (status: SustainabilityStatus) => {
-    const copy: Record<SustainabilityStatus, string> = {
+  const heroCopy = (
+    status: SustainabilityStatus
+  ) => {
+    const copy: Record<
+      SustainabilityStatus,
+      string
+    > = {
       green: t(
         'Your current work setup looks sustainable overall.',
         'Сейчас ваш рабочий режим в целом выглядит устойчивым.'
@@ -164,7 +324,10 @@ const AssessmentViewV1: React.FC = () => {
   ) => {
     const copy: Record<
       SustainabilityFactor,
-      Record<SustainabilityStatus, [string, string]>
+      Record<
+        SustainabilityStatus,
+        [string, string]
+      >
     > = {
       workloadBalance: {
         green: [
@@ -224,43 +387,56 @@ const AssessmentViewV1: React.FC = () => {
       },
     };
 
-    return t(copy[factor][status][0], copy[factor][status][1]);
-  };
-
-  const submitAssessment = async () => {
-    if (Object.keys(answers).length < questions.length) {
-      setError(
-        t(
-          'Please answer all questions.',
-          'Пожалуйста, ответьте на все вопросы.'
-        )
-      );
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    const nextResult = await analyzeAssessment(
-      answers as Record<string, number>,
-      language
+    return t(
+      copy[factor][status][0],
+      copy[factor][status][1]
     );
-
-    setLoading(false);
-
-    if (!nextResult) {
-      setError(
-        t(
-          'Your result could not be calculated right now. Your answers are still here — please try again.',
-          'Сейчас не удалось рассчитать результат. Ваши ответы сохранились на экране — попробуйте ещё раз.'
-        )
-      );
-      return;
-    }
-
-    setResultStep(1);
-    setResult(nextResult);
   };
+
+  const submitAssessment =
+    async () => {
+      if (
+        Object.keys(answers).length <
+        questions.length
+      ) {
+        setError(
+          t(
+            'Please answer all questions.',
+            'Пожалуйста, ответьте на все вопросы.'
+          )
+        );
+
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      const nextResult =
+        await analyzeAssessment(
+          answers as Record<
+            string,
+            number
+          >,
+          language
+        );
+
+      setLoading(false);
+
+      if (!nextResult) {
+        setError(
+          t(
+            'Your result could not be calculated right now. Your answers are still here — please try again.',
+            'Сейчас не удалось рассчитать результат. Ваши ответы сохранились на экране — попробуйте ещё раз.'
+          )
+        );
+
+        return;
+      }
+
+      setResultStep(1);
+      setResult(nextResult);
+    };
 
   const retake = () => {
     setAnswers({});
@@ -268,29 +444,38 @@ const AssessmentViewV1: React.FC = () => {
     setError(null);
     setResultStep(1);
 
-    window.requestAnimationFrame(() => {
-      topRef.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
-    });
-  };
-
-  const goToPeopleDemo = () => {
-    window.history.pushState(
-      { resilience: true },
-      '',
-      '/hr/dashboard'
+    window.requestAnimationFrame(
+      () => {
+        scrollToSection(
+          topRef.current,
+          16
+        );
+      }
     );
-
-    window.dispatchEvent(new PopStateEvent('popstate'));
   };
+
+  const goToPeopleDemo =
+    () => {
+      window.history.pushState(
+        {
+          resilience: true,
+        },
+        '',
+        '/hr/dashboard'
+      );
+
+      window.dispatchEvent(
+        new PopStateEvent(
+          'popstate'
+        )
+      );
+    };
 
   if (!result) {
     return (
       <div
         ref={topRef}
-        className="max-w-4xl mx-auto pb-10 animate-enter"
+        className="max-w-4xl mx-auto pb-12 animate-enter"
       >
         <section className="bg-white/50 backdrop-blur-xl rounded-[2rem] p-5 sm:p-8 border border-white/60 shadow-lg shadow-indigo-500/5">
           <div className="mb-8">
@@ -311,13 +496,25 @@ const AssessmentViewV1: React.FC = () => {
             <div className="mt-4 rounded-2xl border border-slate-200 bg-white/70 p-4 text-sm text-slate-600">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <span>
-                  <strong className="text-slate-900">1</strong> —{' '}
-                  {t('Not at all true', 'Совсем не похоже на меня')}
+                  <strong className="text-slate-900">
+                    1
+                  </strong>{' '}
+                  —{' '}
+                  {t(
+                    'Not at all true',
+                    'Совсем не похоже на меня'
+                  )}
                 </span>
 
                 <span>
-                  <strong className="text-slate-900">5</strong> —{' '}
-                  {t('Very true', 'Полностью похоже на меня')}
+                  <strong className="text-slate-900">
+                    5
+                  </strong>{' '}
+                  —{' '}
+                  {t(
+                    'Very true',
+                    'Полностью похоже на меня'
+                  )}
                 </span>
               </div>
 
@@ -331,59 +528,94 @@ const AssessmentViewV1: React.FC = () => {
           </div>
 
           <div className="space-y-7">
-            {questions.map((question, index) => (
-              <div
-                key={question.id}
-                className="pb-6 border-b border-slate-200/70 last:border-0 last:pb-0"
-              >
-                <div className="flex gap-3 mb-4">
-                  <span className="text-xs font-bold text-slate-400 pt-1">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
+            {questions.map(
+              (
+                question,
+                index
+              ) => (
+                <div
+                  key={question.id}
+                  className="pb-6 border-b border-slate-200/70 last:border-0 last:pb-0"
+                >
+                  <div className="flex gap-3 mb-4">
+                    <span className="text-xs font-bold text-slate-400 pt-1">
+                      {String(
+                        index + 1
+                      ).padStart(
+                        2,
+                        '0'
+                      )}
+                    </span>
 
-                  <p className="font-medium text-slate-800 text-base sm:text-lg leading-relaxed">
-                    {question.text}
-                  </p>
-                </div>
+                    <p className="font-medium text-slate-800 text-base sm:text-lg leading-relaxed">
+                      {question.text}
+                    </p>
+                  </div>
 
-                <div className="grid grid-cols-5 gap-2 sm:flex sm:gap-3 sm:pl-8">
-                  {[1, 2, 3, 4, 5].map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      aria-label={`${question.text}: ${value}`}
-                      onClick={() => {
-                        setAnswers((previous) => ({
-                          ...previous,
-                          [question.id]: value,
-                        }));
-                        setError(null);
-                      }}
-                      className={`w-full sm:w-12 h-11 sm:h-12 rounded-xl sm:rounded-2xl text-base font-semibold transition-all duration-200 ${
-                        answers[question.id] === value
-                          ? 'bg-slate-900 text-white shadow-lg scale-105'
-                          : 'bg-white/70 text-slate-600 border border-slate-200 hover:bg-white hover:border-slate-300'
-                      }`}
-                    >
-                      {value}
-                    </button>
-                  ))}
+                  <div className="grid grid-cols-5 gap-2 sm:flex sm:gap-3 sm:pl-8">
+                    {[
+                      1,
+                      2,
+                      3,
+                      4,
+                      5,
+                    ].map(
+                      (value) => (
+                        <button
+                          key={value}
+                          type="button"
+                          aria-label={`${question.text}: ${value}`}
+                          onClick={() => {
+                            setAnswers(
+                              (
+                                previous
+                              ) => ({
+                                ...previous,
+                                [question.id]:
+                                  value,
+                              })
+                            );
+
+                            setError(
+                              null
+                            );
+                          }}
+                          className={`w-full sm:w-12 h-11 sm:h-12 rounded-xl sm:rounded-2xl text-base font-semibold transition-all duration-200 ${
+                            answers[
+                              question.id
+                            ] === value
+                              ? 'bg-slate-900 text-white shadow-lg scale-105'
+                              : 'bg-white/70 text-slate-600 border border-slate-200 hover:bg-white hover:border-slate-300'
+                          }`}
+                        >
+                          {value}
+                        </button>
+                      )
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
 
           {error && (
             <div className="mt-6 flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
               <AlertTriangle className="w-5 h-5 flex-none mt-0.5" />
-              <span>{error}</span>
+
+              <span>
+                {error}
+              </span>
             </div>
           )}
 
           <button
             type="button"
-            onClick={submitAssessment}
-            disabled={loading}
+            onClick={
+              submitAssessment
+            }
+            disabled={
+              loading
+            }
             className="mt-8 bg-slate-900 hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed text-white px-8 py-4 rounded-2xl text-base font-medium w-full flex justify-center items-center transition-all shadow-xl"
           >
             {loading
@@ -391,26 +623,82 @@ const AssessmentViewV1: React.FC = () => {
                   'Calculating your result…',
                   'Рассчитываем ваш результат…'
                 )
-              : t('View my result', 'Посмотреть результат')}
+              : t(
+                  'View my result',
+                  'Посмотреть результат'
+                )}
           </button>
         </section>
       </div>
     );
   }
 
-  const displayStatus = statusFromScore(result.score);
-  const displayWeakestFactor = result.weakestFactor;
+  const displayStatus =
+    statusFromScore(
+      result.score
+    );
+
+  const displayWeakestFactor =
+    result.weakestFactor;
+
+  const weakestStatus =
+    result.factors[
+      displayWeakestFactor
+    ].status;
+
+  const isPerfectProfile =
+    FACTORS.every(
+      (factor) =>
+        result.factors[
+          factor
+        ].score === 100
+    );
+
+  const thirdActionLabel =
+    isPerfectProfile ||
+    weakestStatus ===
+      'green'
+      ? t(
+          'Keep protected',
+          'Сохранить'
+        )
+      : weakestStatus ===
+          'stable'
+        ? t(
+            'Keep watching',
+            'Продолжать наблюдать'
+          )
+        : t(
+            'Get support',
+            'Получить поддержку'
+          );
+
+  const ThirdActionIcon =
+    isPerfectProfile ||
+    weakestStatus ===
+      'green'
+      ? CheckCircle
+      : weakestStatus ===
+          'stable'
+        ? RefreshCw
+        : AlertTriangle;
 
   return (
     <div
       ref={topRef}
-      className="max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-10 animate-enter"
+      className="max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-24 animate-enter"
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <p className="text-sm text-slate-500">
-            {t('Assessment result', 'Результат оценки')} ·{' '}
-            {new Date().toLocaleDateString(locale)}
+            {t(
+              'Assessment result',
+              'Результат оценки'
+            )}{' '}
+            ·{' '}
+            {new Date().toLocaleDateString(
+              locale
+            )}
           </p>
         </div>
 
@@ -420,7 +708,11 @@ const AssessmentViewV1: React.FC = () => {
           className="self-start sm:self-auto text-slate-600 hover:text-slate-900 text-sm font-bold flex items-center bg-white/60 px-4 py-2 rounded-xl border border-white/70"
         >
           <RefreshCw className="w-4 h-4 mr-2" />
-          {t('Retake', 'Пройти заново')}
+
+          {t(
+            'Retake',
+            'Пройти заново'
+          )}
         </button>
       </div>
 
@@ -450,12 +742,16 @@ const AssessmentViewV1: React.FC = () => {
                   displayStatus
                 )}`}
               >
-                {overallStatusLabel(displayStatus)}
+                {overallStatusLabel(
+                  displayStatus
+                )}
               </span>
             </div>
 
             <p className="text-lg sm:text-xl font-semibold text-slate-900 max-w-3xl leading-relaxed">
-              {heroCopy(displayStatus)}
+              {heroCopy(
+                displayStatus
+              )}
             </p>
 
             <p className="mt-4 text-sm text-slate-500 max-w-2xl">
@@ -470,7 +766,9 @@ const AssessmentViewV1: React.FC = () => {
             <div className="h-2 rounded-full bg-slate-200/80 overflow-hidden">
               <div
                 className="h-full rounded-full bg-slate-900 transition-all duration-700"
-                style={{ width: `${result.score}%` }}
+                style={{
+                  width: `${result.score}%`,
+                }}
               />
             </div>
           </div>
@@ -490,20 +788,25 @@ const AssessmentViewV1: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => setResultStep(2)}
+            onClick={() =>
+              setResultStep(2)
+            }
             className="self-start sm:self-auto inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800"
           >
             {t(
               'See what shapes your score',
               'Посмотреть, из чего складывается результат'
             )}
+
             <ArrowDown className="w-4 h-4" />
           </button>
         </div>
       </section>
 
       {resultStep >= 2 && (
-        <section ref={driversRef} className="scroll-mt-6">
+        <section
+          ref={driversRef}
+        >
           <div className="mb-4">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
               {t(
@@ -521,79 +824,132 @@ const AssessmentViewV1: React.FC = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
-            {FACTORS.map((factor) => {
-              const factorResult = result.factors[factor];
-              const factorStatus = statusFromScore(factorResult.score);
+            {FACTORS.map(
+              (factor) => {
+                const factorResult =
+                  result.factors[
+                    factor
+                  ];
 
-              return (
-                <article
-                  key={factor}
-                  className={`bg-white/55 backdrop-blur-xl rounded-[2rem] p-5 sm:p-6 border shadow-sm transition-all ${
-                    factor === displayWeakestFactor
-                      ? 'border-rose-200/90 bg-white/75 ring-2 ring-rose-100 shadow-md'
-                      : 'border-white/70'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3 mb-5">
-                    <div>
-                      <h3 className="font-bold text-slate-900">
-                        {factorLabel(factor)}
-                      </h3>
+                const factorStatus =
+                  statusFromScore(
+                    factorResult.score
+                  );
 
-                      {factor === displayWeakestFactor && (
-                        <span className="mt-1.5 inline-flex rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-rose-700 border border-rose-100">
-                          {t(
-                            'Main pressure point',
-                            'Главная зона напряжения'
+                return (
+                  <article
+                    key={factor}
+                    className={`bg-white/55 backdrop-blur-xl rounded-[2rem] p-5 sm:p-6 border shadow-sm transition-all ${
+                      factor ===
+                          displayWeakestFactor &&
+                      !isPerfectProfile
+                        ? factorStatus ===
+                          'green'
+                          ? 'border-emerald-200/90 bg-white/75 ring-2 ring-emerald-100 shadow-md'
+                          : factorStatus ===
+                              'stable'
+                            ? 'border-sky-200/90 bg-white/75 ring-2 ring-sky-100 shadow-md'
+                            : 'border-rose-200/90 bg-white/75 ring-2 ring-rose-100 shadow-md'
+                        : 'border-white/70'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-5">
+                      <div>
+                        <h3 className="font-bold text-slate-900">
+                          {factorLabel(
+                            factor
                           )}
-                        </span>
-                      )}
+                        </h3>
+
+                        {factor ===
+                          displayWeakestFactor &&
+                          !isPerfectProfile && (
+                            <span
+                              className={`mt-1.5 inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide border ${
+                                factorStatus ===
+                                'green'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                  : factorStatus ===
+                                      'stable'
+                                    ? 'bg-sky-50 text-sky-700 border-sky-100'
+                                    : 'bg-rose-50 text-rose-700 border-rose-100'
+                              }`}
+                            >
+                              {factorStatus ===
+                              'green'
+                                ? t(
+                                    'Area to protect',
+                                    'Зона, которую стоит сохранить'
+                                  )
+                                : factorStatus ===
+                                    'stable'
+                                  ? t(
+                                      'Area to watch',
+                                      'Зона для наблюдения'
+                                    )
+                                  : t(
+                                      'Main pressure point',
+                                      'Главная зона напряжения'
+                                    )}
+                            </span>
+                          )}
+                      </div>
+
+                      <span
+                        className={`px-2.5 py-1 rounded-full border text-[11px] font-bold ${statusClasses(
+                          factorStatus
+                        )}`}
+                      >
+                        {factorStatusLabel(
+                          factorStatus
+                        )}
+                      </span>
                     </div>
 
-                    <span
-                      className={`px-2.5 py-1 rounded-full border text-[11px] font-bold ${statusClasses(
+                    <div className="flex items-end gap-2 mb-3">
+                      <span className="text-4xl font-bold text-slate-900">
+                        {factorResult.score}
+                      </span>
+
+                      <span className="text-sm text-slate-400 mb-1">
+                        / 100
+                      </span>
+                    </div>
+
+                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden mb-4">
+                      <div
+                        className="h-full rounded-full bg-slate-800 transition-all duration-700"
+                        style={{
+                          width: `${factorResult.score}%`,
+                        }}
+                      />
+                    </div>
+
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      {factorDescription(
+                        factor,
                         factorStatus
-                      )}`}
-                    >
-                      {factorStatusLabel(factorStatus)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-end gap-2 mb-3">
-                    <span className="text-4xl font-bold text-slate-900">
-                      {factorResult.score}
-                    </span>
-
-                    <span className="text-sm text-slate-400 mb-1">
-                      / 100
-                    </span>
-                  </div>
-
-                  <div className="h-2 rounded-full bg-slate-100 overflow-hidden mb-4">
-                    <div
-                      className="h-full rounded-full bg-slate-800 transition-all duration-700"
-                      style={{ width: `${factorResult.score}%` }}
-                    />
-                  </div>
-
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    {factorDescription(factor, factorStatus)}
-                  </p>
-                </article>
-              );
-            })}
+                      )}
+                    </p>
+                  </article>
+                );
+              }
+            )}
           </div>
 
           <div className="mt-5 flex justify-end">
             <button
               type="button"
-              onClick={() => setResultStep(3)}
+              onClick={() =>
+                setResultStep(3)
+              }
               className="inline-flex items-center gap-2 rounded-xl bg-white/70 px-4 py-2.5 text-sm font-bold text-slate-700 border border-white/80 shadow-sm transition hover:bg-white hover:text-slate-950"
             >
               {t(
                 'What matters most right now',
                 'Что сейчас важнее всего'
               )}
+
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -603,7 +959,7 @@ const AssessmentViewV1: React.FC = () => {
       {resultStep >= 3 && (
         <section
           ref={insightRef}
-          className="scroll-mt-6 bg-indigo-50/70 border border-indigo-100 rounded-[2rem] p-5 sm:p-7"
+          className="bg-indigo-50/70 border border-indigo-100 rounded-[2rem] p-5 sm:p-7"
         >
           <div className="flex items-start gap-4">
             <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-sm flex-none">
@@ -631,13 +987,16 @@ const AssessmentViewV1: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => setResultStep(4)}
+                onClick={() =>
+                  setResultStep(4)
+                }
                 className="mt-5 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/10 transition hover:bg-indigo-700"
               >
                 {t(
                   'See what you can do',
                   'Посмотреть, что можно сделать'
                 )}
+
                 <ArrowDown className="w-4 h-4" />
               </button>
             </div>
@@ -646,55 +1005,90 @@ const AssessmentViewV1: React.FC = () => {
       )}
 
       {resultStep >= 4 && (
-        <>
-          <section
-            ref={actionsRef}
-            className="scroll-mt-6"
-          >
-            <div className="mb-4">
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-                {t(
-                  'What to do next',
-                  'Что делать дальше'
-                )}
-              </h2>
+        <section
+          ref={actionsRef}
+        >
+          <div className="mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+              {t(
+                'What to do next',
+                'Что делать дальше'
+              )}
+            </h2>
 
-              <p className="text-slate-500 mt-1">
-                {t(
-                  `Your primary pressure factor is ${factorLabel(
-                    displayWeakestFactor
-                  )}. Start there.`,
-                  `Главная зона давления сейчас — «${factorLabel(
-                    displayWeakestFactor
-                  )}». Начните с неё.`
-                )}
-              </p>
-            </div>
+            <p className="text-slate-500 mt-1">
+              {isPerfectProfile
+                ? t(
+                    'All three factors are strong. Focus on protecting the conditions that are already working.',
+                    'Все три фактора находятся в сильной зоне. Сосредоточьтесь на сохранении условий, которые уже работают.'
+                  )
+                : weakestStatus ===
+                    'green'
+                  ? t(
+                      `${factorLabel(
+                        displayWeakestFactor
+                      )} is the area most worth protecting.`,
+                      `«${factorLabel(
+                        displayWeakestFactor
+                      )}» — зона, которую сейчас важнее всего сохранить.`
+                    )
+                  : weakestStatus ===
+                      'stable'
+                    ? t(
+                        `${factorLabel(
+                          displayWeakestFactor
+                        )} is the area most worth watching.`,
+                        `«${factorLabel(
+                          displayWeakestFactor
+                        )}» — зона, за которой сейчас полезнее всего наблюдать.`
+                      )
+                    : t(
+                        `Your primary pressure factor is ${factorLabel(
+                          displayWeakestFactor
+                        )}. Start there.`,
+                        `Главная зона давления сейчас — «${factorLabel(
+                          displayWeakestFactor
+                        )}». Начните с неё.`
+                      )}
+            </p>
+          </div>
 
-            <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
-              {[
-                {
-                  label: t('Today', 'Сегодня'),
-                  action: result.actions.today,
-                  icon: CheckCircle,
-                },
-                {
-                  label: t(
-                    'This week',
-                    'На этой неделе'
-                  ),
-                  action: result.actions.week,
-                  icon: RefreshCw,
-                },
-                {
-                  label: t(
-                    'Get support',
-                    'Получить поддержку'
-                  ),
-                  action: result.actions.support,
-                  icon: AlertTriangle,
-                },
-              ].map(({ label, action, icon: Icon }) => (
+          <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
+            {[
+              {
+                label: t(
+                  'Today',
+                  'Сегодня'
+                ),
+                action:
+                  result.actions.today,
+                icon:
+                  CheckCircle,
+              },
+              {
+                label: t(
+                  'This week',
+                  'На этой неделе'
+                ),
+                action:
+                  result.actions.week,
+                icon:
+                  RefreshCw,
+              },
+              {
+                label:
+                  thirdActionLabel,
+                action:
+                  result.actions.support,
+                icon:
+                  ThirdActionIcon,
+              },
+            ].map(
+              ({
+                label,
+                action,
+                icon: Icon,
+              }) => (
                 <article
                   key={label}
                   className="bg-white/55 backdrop-blur-xl rounded-[2rem] p-5 sm:p-6 border border-white/70 shadow-sm"
@@ -715,11 +1109,35 @@ const AssessmentViewV1: React.FC = () => {
                     {action.body}
                   </p>
                 </article>
-              ))}
-            </div>
-          </section>
+              )
+            )}
+          </div>
 
-          <section className="bg-white/55 backdrop-blur-xl rounded-[2rem] p-5 sm:p-7 border border-white/70 shadow-sm">
+          <div className="mt-6 flex justify-end">
+            <button
+              type="button"
+              onClick={() =>
+                setResultStep(5)
+              }
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800"
+            >
+              {t(
+                'Continue',
+                'Продолжить'
+              )}
+
+              <ArrowDown className="w-4 h-4" />
+            </button>
+          </div>
+        </section>
+      )}
+
+      {resultStep >= 5 && (
+        <section
+          ref={finalRef}
+          className="space-y-6 sm:space-y-8"
+        >
+          <div className="bg-white/55 backdrop-blur-xl rounded-[2rem] p-5 sm:p-7 border border-white/70 shadow-sm">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center flex-none">
                 <Lock className="w-5 h-5 text-slate-700" />
@@ -771,9 +1189,9 @@ const AssessmentViewV1: React.FC = () => {
                 </div>
               </div>
             </div>
-          </section>
+          </div>
 
-          <section className="bg-slate-900 text-white rounded-[2rem] p-5 sm:p-7 shadow-xl shadow-slate-900/10">
+          <div className="bg-slate-900 text-white rounded-[2rem] p-5 sm:p-7 shadow-xl shadow-slate-900/10">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
               <div className="max-w-3xl">
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-teal-300 mb-2">
@@ -807,7 +1225,9 @@ const AssessmentViewV1: React.FC = () => {
 
               <button
                 type="button"
-                onClick={goToPeopleDemo}
+                onClick={
+                  goToPeopleDemo
+                }
                 className="group inline-flex min-h-12 flex-shrink-0 items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-bold text-slate-900 transition hover:bg-slate-100"
               >
                 {t(
@@ -818,8 +1238,8 @@ const AssessmentViewV1: React.FC = () => {
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </button>
             </div>
-          </section>
-        </>
+          </div>
+        </section>
       )}
     </div>
   );

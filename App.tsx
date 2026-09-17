@@ -1,4 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { UserRole } from './types';
 
@@ -26,10 +31,17 @@ const EMPLOYEE_TAB_TO_SLUG: Record<string, string> = {
 };
 
 const EMPLOYEE_SLUG_TO_TAB = Object.fromEntries(
-  Object.entries(EMPLOYEE_TAB_TO_SLUG).map(([tab, slug]) => [slug, tab])
+  Object.entries(EMPLOYEE_TAB_TO_SLUG).map(([tab, slug]) => [
+    slug,
+    tab,
+  ])
 ) as Record<string, string>;
 
-const HR_TABS = new Set(['dashboard', 'team', 'reports']);
+const HR_TABS = new Set([
+  'dashboard',
+  'team',
+  'reports',
+]);
 
 interface AppRoute {
   isLoggedIn: boolean;
@@ -38,23 +50,40 @@ interface AppRoute {
   selectedModuleId: number | null;
 }
 
-const parseRoute = (pathname: string): AppRoute => {
-  const parts = pathname.split('/').filter(Boolean);
+const parseRoute = (
+  pathname: string
+): AppRoute => {
+  const parts = pathname
+    .split('/')
+    .filter(Boolean);
 
   if (parts[0] === 'employee') {
-    const activeTab = EMPLOYEE_SLUG_TO_TAB[parts[1]] || 'progress';
-    const moduleId = parts[2] === 'module' ? Number(parts[3]) : Number.NaN;
+    const activeTab =
+      EMPLOYEE_SLUG_TO_TAB[parts[1]] ||
+      'progress';
+
+    const moduleId =
+      parts[2] === 'module'
+        ? Number(parts[3])
+        : Number.NaN;
 
     return {
       isLoggedIn: true,
       role: UserRole.EMPLOYEE,
       activeTab,
-      selectedModuleId: Number.isFinite(moduleId) ? moduleId : null,
+      selectedModuleId:
+        Number.isFinite(moduleId)
+          ? moduleId
+          : null,
     };
   }
 
   if (parts[0] === 'hr') {
-    const activeTab = HR_TABS.has(parts[1]) ? parts[1] : 'dashboard';
+    const activeTab = HR_TABS.has(
+      parts[1]
+    )
+      ? parts[1]
+      : 'dashboard';
 
     return {
       isLoggedIn: true,
@@ -73,26 +102,73 @@ const parseRoute = (pathname: string): AppRoute => {
 };
 
 const App: React.FC = () => {
-  const [pathname, setPathname] = useState(() => window.location.pathname);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [pathname, setPathname] =
+    useState(
+      () => window.location.pathname
+    );
 
-  const { t, setLanguage } = useLanguage();
+  const [
+    mobileNavOpen,
+    setMobileNavOpen,
+  ] = useState(false);
+
+  const mainRef =
+    useRef<HTMLElement>(null);
+
+  const { t, setLanguage } =
+    useLanguage();
 
   const route = parseRoute(pathname);
 
   useEffect(() => {
-    const handlePopState = () => setPathname(window.location.pathname);
+    const handlePopState = () =>
+      setPathname(
+        window.location.pathname
+      );
 
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener(
+      'popstate',
+      handlePopState
+    );
 
-    return () => window.removeEventListener('popstate', handlePopState);
+    return () =>
+      window.removeEventListener(
+        'popstate',
+        handlePopState
+      );
   }, []);
+
+  /*
+   * The desktop shell uses <main> as its own scroll container.
+   * When routes change, React keeps that same DOM element alive,
+   * so its previous scrollTop would otherwise leak into the next
+   * screen — for example Employee result → People dashboard.
+   *
+   * useLayoutEffect resets both possible scroll containers before
+   * the new route is painted, avoiding a visible mid-page flash.
+   */
+  useLayoutEffect(() => {
+    mainRef.current?.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'auto',
+    });
+
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'auto',
+    });
+  }, [pathname]);
 
   const navigate = (
     path: string,
     options?: {
       replace?: boolean;
-      state?: Record<string, unknown>;
+      state?: Record<
+        string,
+        unknown
+      >;
     }
   ) => {
     const state = {
@@ -101,15 +177,25 @@ const App: React.FC = () => {
     };
 
     if (options?.replace) {
-      window.history.replaceState(state, '', path);
+      window.history.replaceState(
+        state,
+        '',
+        path
+      );
     } else {
-      window.history.pushState(state, '', path);
+      window.history.pushState(
+        state,
+        '',
+        path
+      );
     }
 
     setPathname(path);
   };
 
-  const handleLogin = (selectedRole: UserRole) => {
+  const handleLogin = (
+    selectedRole: UserRole
+  ) => {
     setLanguage('en');
 
     navigate(
@@ -124,41 +210,83 @@ const App: React.FC = () => {
     navigate('/');
   };
 
-  const handleTabChange = (tab: string) => {
-    if (route.role === UserRole.HR) {
-      navigate(`/hr/${HR_TABS.has(tab) ? tab : 'dashboard'}`);
+  const handleTabChange = (
+    tab: string
+  ) => {
+    if (
+      route.role === UserRole.HR
+    ) {
+      navigate(
+        `/hr/${
+          HR_TABS.has(tab)
+            ? tab
+            : 'dashboard'
+        }`
+      );
+
       return;
     }
 
-    const slug = EMPLOYEE_TAB_TO_SLUG[tab] || 'progress';
+    const slug =
+      EMPLOYEE_TAB_TO_SLUG[tab] ||
+      'progress';
 
-    navigate(`/employee/${slug}`);
+    navigate(
+      `/employee/${slug}`
+    );
   };
 
-  const handleModuleSelect = (moduleId: number) => {
-    const slug = EMPLOYEE_TAB_TO_SLUG[route.activeTab] || 'program';
-    const parentPath = `/employee/${slug}`;
+  const handleModuleSelect = (
+    moduleId: number
+  ) => {
+    const slug =
+      EMPLOYEE_TAB_TO_SLUG[
+        route.activeTab
+      ] || 'program';
 
-    navigate(`${parentPath}/module/${moduleId}`, {
-      state: { fromPath: parentPath },
-    });
+    const parentPath =
+      `/employee/${slug}`;
+
+    navigate(
+      `${parentPath}/module/${moduleId}`,
+      {
+        state: {
+          fromPath: parentPath,
+        },
+      }
+    );
   };
 
   const handleModuleBack = () => {
-    const state = window.history.state as { fromPath?: string } | null;
+    const state =
+      window.history.state as {
+        fromPath?: string;
+      } | null;
 
     if (state?.fromPath) {
       window.history.back();
       return;
     }
 
-    const slug = EMPLOYEE_TAB_TO_SLUG[route.activeTab] || 'program';
+    const slug =
+      EMPLOYEE_TAB_TO_SLUG[
+        route.activeTab
+      ] || 'program';
 
-    navigate(`/employee/${slug}`, { replace: true });
+    navigate(
+      `/employee/${slug}`,
+      {
+        replace: true,
+      }
+    );
   };
 
   if (!route.isLoggedIn) {
-    return <LoginPage onLogin={handleLogin} />;
+    return (
+      <LoginPage
+        onLogin={handleLogin}
+      />
+    );
   }
 
   return (
@@ -166,33 +294,57 @@ const App: React.FC = () => {
       <Sidebar
         role={route.role}
         activeTab={route.activeTab}
-        setActiveTab={handleTabChange}
+        setActiveTab={
+          handleTabChange
+        }
         onLogout={handleLogout}
-        mobileOpen={mobileNavOpen}
-        onMobileClose={() => setMobileNavOpen(false)}
+        mobileOpen={
+          mobileNavOpen
+        }
+        onMobileClose={() =>
+          setMobileNavOpen(false)
+        }
       />
 
-      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:ml-[18rem] lg:p-8 lg:mr-4 min-h-screen lg:h-screen overflow-y-auto no-scrollbar">
+      <main
+        ref={mainRef}
+        className="flex-1 min-w-0 p-4 sm:p-6 lg:ml-[18rem] lg:p-8 lg:mr-4 min-h-screen lg:h-screen overflow-y-auto no-scrollbar"
+      >
         <header className="flex items-center justify-between gap-3 mb-6 sm:mb-8 lg:mb-10 lg:pt-4">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
-              onClick={() => setMobileNavOpen(true)}
+              onClick={() =>
+                setMobileNavOpen(
+                  true
+                )
+              }
               className="lg:hidden w-11 h-11 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/50 shadow-sm flex items-center justify-center text-slate-600 flex-shrink-0"
-              aria-label={t('Open navigation', 'Открыть меню')}
+              aria-label={t(
+                'Open navigation',
+                'Открыть меню'
+              )}
             >
               <Menu className="w-5 h-5" />
             </button>
 
             <div className="bg-white/30 backdrop-blur-xl px-4 sm:px-6 py-3 rounded-2xl sm:rounded-3xl border border-white/40 shadow-sm min-w-0">
               <h1 className="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight truncate">
-                {route.role === UserRole.EMPLOYEE
-                  ? t('Employee demo', 'Демо сотрудника')
-                  : t('People analytics', 'Аналитика')}
+                {route.role ===
+                UserRole.EMPLOYEE
+                  ? t(
+                      'Employee demo',
+                      'Демо сотрудника'
+                    )
+                  : t(
+                      'People analytics',
+                      'Аналитика'
+                    )}
               </h1>
 
               <p className="text-slate-500 text-xs sm:text-sm truncate">
-                {route.role === UserRole.EMPLOYEE
+                {route.role ===
+                UserRole.EMPLOYEE
                   ? t(
                       'Private assessment experience',
                       'Приватная оценка состояния'
@@ -207,38 +359,60 @@ const App: React.FC = () => {
 
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <div className="hidden md:block">
-              <LanguageToggle compact />
+              <LanguageToggle
+                compact
+              />
             </div>
 
             <div className="flex items-center gap-3 bg-white/30 backdrop-blur-xl sm:pl-5 pr-2 py-2 rounded-full border border-white/40 shadow-sm">
               <div className="text-right hidden xl:block">
                 <p className="text-sm font-semibold text-slate-900">
-                  {t('Alex Morgan', 'Александр Иванов')}
+                  {t(
+                    'Alex Morgan',
+                    'Александр Иванов'
+                  )}
                 </p>
 
                 <p className="text-xs text-slate-500">
-                  {route.role === UserRole.EMPLOYEE
+                  {route.role ===
+                  UserRole.EMPLOYEE
                     ? 'Senior Developer'
                     : 'HR Director'}
                 </p>
               </div>
 
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-white to-slate-100 border border-white flex items-center justify-center text-slate-600 text-xs font-bold shadow-inner">
-                {t('AM', 'АИ')}
+                {t(
+                  'AM',
+                  'АИ'
+                )}
               </div>
             </div>
           </div>
         </header>
 
-        {route.role === UserRole.EMPLOYEE ? (
+        {route.role ===
+        UserRole.EMPLOYEE ? (
           <EmployeeView
-            activeTab={route.activeTab}
-            selectedModuleId={route.selectedModuleId}
-            onModuleSelect={handleModuleSelect}
-            onModuleBack={handleModuleBack}
+            activeTab={
+              route.activeTab
+            }
+            selectedModuleId={
+              route.selectedModuleId
+            }
+            onModuleSelect={
+              handleModuleSelect
+            }
+            onModuleBack={
+              handleModuleBack
+            }
           />
         ) : (
-          <HRView activeTab={route.activeTab} />
+          <HRView
+            activeTab={
+              route.activeTab
+            }
+          />
         )}
       </main>
     </div>
