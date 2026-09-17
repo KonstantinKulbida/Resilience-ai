@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from 'react';
+
 import { UserRole } from './types';
+
 import Sidebar from './components/Sidebar';
+
 import EmployeeView from './components/EmployeeView';
+
 import HRView from './components/HRView';
+
 import LoginPage from './components/LoginPage';
+
 import LanguageToggle from './components/LanguageToggle';
+
 import { Menu } from 'lucide-react';
+
 import { useLanguage } from './i18n/LanguageContext';
 
 const EMPLOYEE_TAB_TO_SLUG: Record<string, string> = {
@@ -47,6 +55,7 @@ const parseRoute = (pathname: string): AppRoute => {
 
   if (parts[0] === 'hr') {
     const activeTab = HR_TABS.has(parts[1]) ? parts[1] : 'dashboard';
+
     return {
       isLoggedIn: true,
       role: UserRole.HR,
@@ -66,27 +75,48 @@ const parseRoute = (pathname: string): AppRoute => {
 const App: React.FC = () => {
   const [pathname, setPathname] = useState(() => window.location.pathname);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const { t } = useLanguage();
+
+  const { t, setLanguage } = useLanguage();
+
   const route = parseRoute(pathname);
 
   useEffect(() => {
     const handlePopState = () => setPathname(window.location.pathname);
+
     window.addEventListener('popstate', handlePopState);
+
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const navigate = (path: string, options?: { replace?: boolean; state?: Record<string, unknown> }) => {
-    const state = { resilience: true, ...(options?.state || {}) };
+  const navigate = (
+    path: string,
+    options?: {
+      replace?: boolean;
+      state?: Record<string, unknown>;
+    }
+  ) => {
+    const state = {
+      resilience: true,
+      ...(options?.state || {}),
+    };
+
     if (options?.replace) {
       window.history.replaceState(state, '', path);
     } else {
       window.history.pushState(state, '', path);
     }
+
     setPathname(path);
   };
 
   const handleLogin = (selectedRole: UserRole) => {
-    navigate(selectedRole === UserRole.HR ? '/hr/dashboard' : '/employee/assessment');
+    setLanguage('en');
+
+    navigate(
+      selectedRole === UserRole.HR
+        ? '/hr/dashboard'
+        : '/employee/assessment'
+    );
   };
 
   const handleLogout = () => {
@@ -101,23 +131,29 @@ const App: React.FC = () => {
     }
 
     const slug = EMPLOYEE_TAB_TO_SLUG[tab] || 'progress';
+
     navigate(`/employee/${slug}`);
   };
 
   const handleModuleSelect = (moduleId: number) => {
     const slug = EMPLOYEE_TAB_TO_SLUG[route.activeTab] || 'program';
     const parentPath = `/employee/${slug}`;
-    navigate(`${parentPath}/module/${moduleId}`, { state: { fromPath: parentPath } });
+
+    navigate(`${parentPath}/module/${moduleId}`, {
+      state: { fromPath: parentPath },
+    });
   };
 
   const handleModuleBack = () => {
     const state = window.history.state as { fromPath?: string } | null;
+
     if (state?.fromPath) {
       window.history.back();
       return;
     }
 
     const slug = EMPLOYEE_TAB_TO_SLUG[route.activeTab] || 'program';
+
     navigate(`/employee/${slug}`, { replace: true });
   };
 
@@ -150,12 +186,21 @@ const App: React.FC = () => {
 
             <div className="bg-white/30 backdrop-blur-xl px-4 sm:px-6 py-3 rounded-2xl sm:rounded-3xl border border-white/40 shadow-sm min-w-0">
               <h1 className="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight truncate">
-                {route.role === UserRole.EMPLOYEE ? t('Employee workspace', 'Личный кабинет') : t('People analytics', 'Аналитика')}
+                {route.role === UserRole.EMPLOYEE
+                  ? t('Employee demo', 'Демо сотрудника')
+                  : t('People analytics', 'Аналитика')}
               </h1>
+
               <p className="text-slate-500 text-xs sm:text-sm truncate">
                 {route.role === UserRole.EMPLOYEE
-                  ? t('Resilience program', 'Программа устойчивости')
-                  : t('Northstar Labs • synthetic demo', 'ООО «ТехноГрупп» • synthetic demo')}
+                  ? t(
+                      'Private assessment experience',
+                      'Приватная оценка состояния'
+                    )
+                  : t(
+                      'Northstar Labs • synthetic demo',
+                      'ООО «ТехноГрупп» • synthetic demo'
+                    )}
               </p>
             </div>
           </div>
@@ -164,11 +209,20 @@ const App: React.FC = () => {
             <div className="hidden md:block">
               <LanguageToggle compact />
             </div>
+
             <div className="flex items-center gap-3 bg-white/30 backdrop-blur-xl sm:pl-5 pr-2 py-2 rounded-full border border-white/40 shadow-sm">
               <div className="text-right hidden xl:block">
-                <p className="text-sm font-semibold text-slate-900">{t('Alex Morgan', 'Александр Иванов')}</p>
-                <p className="text-xs text-slate-500">{route.role === UserRole.EMPLOYEE ? 'Senior Developer' : 'HR Director'}</p>
+                <p className="text-sm font-semibold text-slate-900">
+                  {t('Alex Morgan', 'Александр Иванов')}
+                </p>
+
+                <p className="text-xs text-slate-500">
+                  {route.role === UserRole.EMPLOYEE
+                    ? 'Senior Developer'
+                    : 'HR Director'}
+                </p>
               </div>
+
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-white to-slate-100 border border-white flex items-center justify-center text-slate-600 text-xs font-bold shadow-inner">
                 {t('AM', 'АИ')}
               </div>

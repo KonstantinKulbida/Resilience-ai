@@ -1,6 +1,6 @@
 import React from 'react';
 import { UserRole } from '../types';
-import { LayoutDashboard, Activity, Users, LogOut, HeartHandshake, PieChart, LifeBuoy, Lightbulb, StickyNote, X } from 'lucide-react';
+import { House, LayoutDashboard, X } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 import LanguageToggle from './LanguageToggle';
 
@@ -13,21 +13,32 @@ interface SidebarProps {
   onMobileClose: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ role, activeTab, setActiveTab, onLogout, mobileOpen, onMobileClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  role,
+  activeTab,
+  setActiveTab,
+  onLogout,
+  mobileOpen,
+  onMobileClose,
+}) => {
   const { t } = useLanguage();
 
-  const menuItems = role === UserRole.HR ? [
-    { id: 'dashboard', label: t('Overview', 'Обзор'), icon: LayoutDashboard },
-    { id: 'team', label: t('Team', 'Команда'), icon: Users },
-    { id: 'reports', label: t('Reports', 'Отчеты'), icon: PieChart },
-  ] : [
-    { id: 'progress', label: t('My progress', 'Мой прогресс'), icon: Activity },
-    { id: 'program', label: t('Program', 'Программа'), icon: HeartHandshake },
-    { id: 'insights', label: t('Insights', 'Инсайты'), icon: Lightbulb },
-    { id: 'notes', label: t('My notes', 'Мои заметки'), icon: StickyNote },
-    { id: 'first_aid', label: t('Quick relief', 'Скорая помощь'), icon: LifeBuoy },
-    { id: 'assessment', label: t('Assessment', 'Оценка состояния'), icon: LayoutDashboard },
-  ];
+  const menuItems =
+    role === UserRole.HR
+      ? [
+          {
+            id: 'dashboard',
+            label: t('Overview', 'Обзор'),
+            icon: LayoutDashboard,
+          },
+        ]
+      : [
+          {
+            id: 'assessment',
+            label: t('Assessment', 'Оценка'),
+            icon: LayoutDashboard,
+          },
+        ];
 
   const handleTab = (tab: string) => {
     setActiveTab(tab);
@@ -38,9 +49,10 @@ const Sidebar: React.FC<SidebarProps> = ({ role, activeTab, setActiveTab, onLogo
     <div className="w-full h-full rounded-[2.5rem] bg-white/45 backdrop-blur-2xl border border-white/50 shadow-2xl shadow-indigo-500/10 flex flex-col overflow-hidden">
       <div className="p-7 pb-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-400 to-blue-500 shadow-lg shadow-teal-500/30"></div>
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-400 to-blue-500 shadow-lg shadow-teal-500/30" />
           <span>Resilience</span>
         </h1>
+
         <button
           type="button"
           onClick={onMobileClose}
@@ -55,6 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, activeTab, setActiveTab, onLogo
         {menuItems.map((item) => (
           <button
             key={item.id}
+            type="button"
             onClick={() => handleTab(item.id)}
             className={`flex items-center w-full px-5 py-3.5 rounded-2xl transition-all duration-300 group ${
               activeTab === item.id
@@ -64,10 +77,13 @@ const Sidebar: React.FC<SidebarProps> = ({ role, activeTab, setActiveTab, onLogo
           >
             <item.icon
               className={`w-5 h-5 mr-3 transition-all duration-300 ${
-                activeTab === item.id ? 'text-teal-600 scale-110' : 'text-slate-400 group-hover:text-slate-600'
+                activeTab === item.id
+                  ? 'text-teal-600 scale-110'
+                  : 'text-slate-400 group-hover:text-slate-600'
               }`}
               strokeWidth={2}
             />
+
             <span className="text-sm">{item.label}</span>
           </button>
         ))}
@@ -77,12 +93,17 @@ const Sidebar: React.FC<SidebarProps> = ({ role, activeTab, setActiveTab, onLogo
         <div className="px-4 pb-1">
           <LanguageToggle compact />
         </div>
+
         <button
+          type="button"
           onClick={onLogout}
-          className="flex items-center text-slate-500 hover:text-red-500 hover:bg-red-50/50 rounded-2xl transition-all w-full px-5 py-3.5"
+          className="flex items-center text-slate-500 hover:text-slate-800 hover:bg-white/30 rounded-2xl transition-all w-full px-5 py-3.5"
         >
-          <LogOut className="w-5 h-5 mr-3" strokeWidth={2} />
-          <span className="text-sm font-medium">{t('Sign out', 'Выйти')}</span>
+          <House className="w-5 h-5 mr-3" strokeWidth={2} />
+
+          <span className="text-sm font-medium">
+            {t('Back to demo home', 'На главную демо')}
+          </span>
         </button>
       </div>
     </div>
@@ -102,6 +123,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, activeTab, setActiveTab, onLogo
             onClick={onMobileClose}
             aria-label={t('Close navigation', 'Закрыть меню')}
           />
+
           <aside className="relative w-[min(19rem,calc(100vw-2rem))] h-[calc(100vh-2rem)] m-4 flex flex-col animate-enter">
             {sidebarContent}
           </aside>
