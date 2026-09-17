@@ -70,11 +70,23 @@ const scrollToSection = (
   const scrollContainer =
     target.closest('main') as HTMLElement | null;
 
-  if (!scrollContainer) {
-    target.scrollIntoView({
+  const scrollsInsideMain =
+    scrollContainer &&
+    scrollContainer.scrollHeight >
+      scrollContainer.clientHeight + 1;
+
+  if (!scrollContainer || !scrollsInsideMain) {
+    const targetTop =
+      window.scrollY +
+      target.getBoundingClientRect().top -
+      offset;
+
+    window.scrollTo({
+      top: Math.max(0, targetTop),
+      left: 0,
       behavior: 'smooth',
-      block: 'start',
     });
+
     return;
   }
 

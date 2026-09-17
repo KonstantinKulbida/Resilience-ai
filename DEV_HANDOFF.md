@@ -6,10 +6,18 @@
 - Current branch: `main`
 - GitHub: `KonstantinKulbida/Resilience-ai`
 - Production: https://resilience-ai-eta.vercel.app
-- Deployed baseline before the visual-polish release: `848d3de` (`docs: document assessment guidance fixes`)
+- Latest deployed commit: `71575d7` (`feat: polish core investor journey`)
 - Previous deployed logic fix: `3428dbe` (`fix: stabilize assessment guidance and demo flow`)
 
 GitHub `main` is the canonical deployed source. This file is the canonical development handoff between chats.
+
+## Current uncommitted fix
+
+- Fixed the production mobile assessment regression where moving between questionnaire steps left the viewport near the bottom of the card.
+- `scrollToSection` now uses the document viewport when mobile `<main>` expands with its content, while retaining the existing fixed-height `<main>` scroll behavior on desktop.
+- Back / Continue behavior, answers, missing-answer focus, result-stage scrolling, scoring, copy, layout, API behavior, and People screens are unchanged.
+- Validated at 390 px for steps 1 → 2 → 3 → 4 and Back 4 → 3, including answer persistence and missing-answer validation; desktop assessment and result scrolling were also verified.
+- This fix is not committed or pushed yet.
 
 ## Current shipped state
 
@@ -75,4 +83,4 @@ Also summarize all changed files and the result of each validation command. For 
 
 ## Next implementation step
 
-Create a dedicated corporate visual system and document it in `DESIGN_SYSTEM.md`. Treat that as a separate brand-system task: preserve the shipped shell geometry, questionnaire flow, result journey, assessment/model logic, API contracts, privacy rules, and People data unless that task explicitly expands scope.
+After the mobile assessment scroll fix is reviewed, commit, push, and production-smoke-test it only with explicit approval. Then create a dedicated corporate visual system and document it in `DESIGN_SYSTEM.md`. Treat that as a separate brand-system task: preserve the shipped shell geometry, questionnaire flow, result journey, assessment/model logic, API contracts, privacy rules, and People data unless that task explicitly expands scope.

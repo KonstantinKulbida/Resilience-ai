@@ -1,5 +1,15 @@
 # Release notes
 
+## 2026-09-17 — Mobile assessment step-scroll fix
+
+This follow-up fixes a production mobile regression in the four-step assessment. Moving forward or backward between steps now scrolls to the assessment heading and step progress instead of leaving the viewport near the bottom of the card.
+
+The assessment scroll helper now detects the actual scroll owner: the document viewport on mobile and the fixed-height application `<main>` container on desktop. Answer persistence, Back / Continue behavior, missing-answer focus, result-stage scrolling, scoring, copy, layout, and API behavior are unchanged.
+
+Validated locally at 390 px for steps 1 → 2 → 3 → 4 and Back 4 → 3, including preserved selections and missing-answer validation. The desktop assessment and result transition were also checked for regressions.
+
+---
+
 ## 2026-09-17 — Core investor journey visual polish
 
 This release makes the core Resilience.ai demo more focused, operational, and presentation-ready without changing assessment scoring, guidance logic, API contracts, or People data.
