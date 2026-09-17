@@ -1,5 +1,70 @@
 # Release notes
 
+## 2026-09-17 — Assessment guidance and demo-flow fixes
+
+This release fixes assessment interpretation edge cases and stabilizes the staged employee-to-People demo journey.
+
+### Assessment guidance
+
+The deterministic scoring model itself is unchanged.
+
+Fixed an interpretation bug where the system could assign a `MAIN PRESSURE POINT` even when all factors were healthy or perfect.
+
+Assessment guidance now has four explicit modes:
+
+- `Perfect` — all three factors are at 100; no problem is invented and recommendations focus on maintaining what is already working.
+- `Protect` — the weakest factor is still in the Green zone; it is shown as `AREA TO PROTECT` with preventive actions.
+- `Watch` — the weakest factor is Stable; it is shown as `AREA TO WATCH` with light corrective actions.
+- `Pressure` — the weakest factor is in Needs attention or At risk; it is shown as `MAIN PRESSURE POINT` with intervention and support actions.
+
+This prevents healthy profiles from receiving unnecessarily alarming recommendations.
+
+Validated scenarios included:
+
+- perfect profile: `100 / 100 / 100`
+- green weakest factor: `88 / 100 / 100`
+- stable weakest factor: `75 / 100 / 100`
+- at-risk workload profile
+
+### Recommendations
+
+Recommendations now match the actual state of the weakest factor:
+
+- healthy profiles receive maintenance / protection guidance;
+- stable profiles receive monitoring and early-adjustment guidance;
+- pressure profiles continue to receive intervention-oriented actions;
+- Gemini personalization is bypassed for non-pressure profiles so it cannot invent a problem that deterministic scoring does not support.
+
+### Employee result journey
+
+The staged result experience was updated to:
+
+`Result → Drivers → Personalized insight → Actions → Privacy → People demo`
+
+Changes include:
+
+- more predictable staged scrolling;
+- route changes reset the application scroll position;
+- People dashboard now opens from the top instead of inheriting the employee-result scroll position;
+- Privacy and the People demo transition are now revealed as a separate final step;
+- added a dedicated `Continue` action after recommendations so the final demo transition no longer appears partially cut off below the viewport.
+
+### Validation
+
+The following were verified locally:
+
+- Perfect guidance
+- Protect guidance
+- Watch guidance
+- Pressure guidance
+- staged employee result flow
+- Employee → People transition
+- People dashboard opens at the top
+- `npx tsc --noEmit`
+- `npm run build`
+
+---
+
 ## 2026-09-17 — Buyer / investor demo journey
 
 This release turns the existing prototype shell into a guided buyer/investor demo path without changing the underlying product model.
