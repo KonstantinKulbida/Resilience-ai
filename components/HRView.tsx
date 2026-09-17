@@ -256,7 +256,7 @@ const HRView: React.FC<HRViewProps> = ({ activeTab }) => {
               onChange={(event) =>
                 setDepartment(event.target.value as 'All' | 'IT' | 'Sales')
               }
-              className="w-full sm:w-auto appearance-none bg-white/40 backdrop-blur-md border border-white/60 text-slate-700 py-2.5 pl-5 pr-10 rounded-2xl text-sm focus:outline-none focus:border-teal-400 hover:bg-white/60 transition-colors shadow-sm"
+              className="w-full sm:w-auto appearance-none bg-white/75 backdrop-blur-md border border-slate-200/80 text-slate-700 py-2.5 pl-5 pr-10 rounded-2xl text-sm focus:outline-none focus:border-indigo-400 hover:bg-white transition-colors shadow-sm"
             >
               <option value="All">{t('All departments', 'Все отделы')}</option>
               <option value="IT">
@@ -270,7 +270,7 @@ const HRView: React.FC<HRViewProps> = ({ activeTab }) => {
         </div>
 
         <section className="grid lg:grid-cols-[1.4fr_0.8fr] gap-5">
-          <div className="bg-white/55 backdrop-blur-xl rounded-[2.25rem] p-6 sm:p-8 border border-white/70 shadow-xl shadow-indigo-500/5">
+          <div className="bg-white/75 backdrop-blur-xl rounded-[2.25rem] p-6 sm:p-8 border border-slate-200/80 shadow-xl shadow-slate-900/5">
             <p className="text-sm font-semibold text-slate-500 mb-3">
               {t('Team Sustainability', 'Устойчивость команды')}
             </p>
@@ -299,13 +299,13 @@ const HRView: React.FC<HRViewProps> = ({ activeTab }) => {
 
             <div className="mt-6 h-2 rounded-full bg-slate-200/80 overflow-hidden">
               <div
-                className="h-full rounded-full bg-slate-900"
+                className="h-full rounded-full bg-indigo-600"
                 style={{ width: `${currentTeamSustainability}%` }}
               />
             </div>
           </div>
 
-          <div className="bg-white/45 backdrop-blur-xl rounded-[2.25rem] p-6 sm:p-8 border border-white/60 shadow-lg shadow-indigo-500/5">
+          <div className="bg-white/75 backdrop-blur-xl rounded-[2.25rem] p-6 sm:p-8 border border-slate-200/80 shadow-xl shadow-slate-900/5">
             <p className="text-sm font-semibold text-slate-500">
               {t('Participation', 'Участие')}
             </p>
@@ -359,7 +359,7 @@ const HRView: React.FC<HRViewProps> = ({ activeTab }) => {
                   className={`rounded-[2rem] p-5 sm:p-6 border shadow-sm ${
                     isPrimary
                       ? 'bg-white/75 border-rose-200 ring-2 ring-rose-100'
-                      : 'bg-white/45 border-white/60'
+                      : 'bg-white/75 border-slate-200/80'
                   }`}
                 >
                   <div className="flex justify-between gap-3">
@@ -390,7 +390,7 @@ const HRView: React.FC<HRViewProps> = ({ activeTab }) => {
 
                   <div className="mt-3 h-2 rounded-full bg-slate-100 overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-slate-800"
+                      className="h-full rounded-full bg-indigo-600"
                       style={{ width: `${score}%` }}
                     />
                   </div>
@@ -409,7 +409,7 @@ const HRView: React.FC<HRViewProps> = ({ activeTab }) => {
         </section>
 
         <section className="grid lg:grid-cols-2 gap-5">
-          <div className="bg-rose-50/70 border border-rose-100 rounded-[2rem] p-6 sm:p-7">
+          <div className="bg-white/75 backdrop-blur-xl border border-slate-200/80 rounded-[2rem] p-6 sm:p-7 shadow-sm">
             <p className="text-xs uppercase tracking-wider font-bold text-rose-600">
               {t('Primary issue', 'Главная проблема')}
             </p>
@@ -430,7 +430,7 @@ const HRView: React.FC<HRViewProps> = ({ activeTab }) => {
             </p>
           </div>
 
-          <div className="bg-indigo-50/70 border border-indigo-100 rounded-[2rem] p-6 sm:p-7">
+          <div className="bg-white/75 backdrop-blur-xl border border-slate-200/80 rounded-[2rem] p-6 sm:p-7 shadow-sm">
             <p className="text-xs uppercase tracking-wider font-bold text-indigo-600">
               {t(
                 'Recommended intervention',
@@ -447,7 +447,7 @@ const HRView: React.FC<HRViewProps> = ({ activeTab }) => {
             </p>
 
             <div className="mt-5 grid sm:grid-cols-2 gap-3">
-              <div className="rounded-xl bg-white/70 border border-white p-3">
+              <div className="rounded-xl bg-slate-50/80 border border-slate-200/70 p-3">
                 <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
                   {t('Owner', 'Ответственный')}
                 </p>
@@ -456,7 +456,7 @@ const HRView: React.FC<HRViewProps> = ({ activeTab }) => {
                 </p>
               </div>
 
-              <div className="rounded-xl bg-white/70 border border-white p-3">
+              <div className="rounded-xl bg-slate-50/80 border border-slate-200/70 p-3">
                 <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
                   {t('Re-check', 'Повторная оценка')}
                 </p>
@@ -468,7 +468,7 @@ const HRView: React.FC<HRViewProps> = ({ activeTab }) => {
           </div>
         </section>
 
-        <section className="bg-white/55 backdrop-blur-xl rounded-[2rem] p-6 sm:p-7 border border-white/70 shadow-lg shadow-indigo-500/5">
+        <section className="bg-white/75 backdrop-blur-xl rounded-[2rem] p-6 sm:p-7 border border-slate-200/80 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
             <div>
               <p className="text-xs uppercase tracking-wider font-bold text-slate-400">

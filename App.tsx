@@ -7,17 +7,12 @@ import React, {
 
 import { UserRole } from './types';
 
-import Sidebar from './components/Sidebar';
-
 import EmployeeView from './components/EmployeeView';
-
 import HRView from './components/HRView';
-
 import LoginPage from './components/LoginPage';
-
 import LanguageToggle from './components/LanguageToggle';
 
-import { Menu } from 'lucide-react';
+import { House } from 'lucide-react';
 
 import { useLanguage } from './i18n/LanguageContext';
 
@@ -107,11 +102,6 @@ const App: React.FC = () => {
       () => window.location.pathname
     );
 
-  const [
-    mobileNavOpen,
-    setMobileNavOpen,
-  ] = useState(false);
-
   const mainRef =
     useRef<HTMLElement>(null);
 
@@ -138,15 +128,6 @@ const App: React.FC = () => {
       );
   }, []);
 
-  /*
-   * The desktop shell uses <main> as its own scroll container.
-   * When routes change, React keeps that same DOM element alive,
-   * so its previous scrollTop would otherwise leak into the next
-   * screen — for example Employee result → People dashboard.
-   *
-   * useLayoutEffect resets both possible scroll containers before
-   * the new route is painted, avoiding a visible mid-page flash.
-   */
   useLayoutEffect(() => {
     mainRef.current?.scrollTo({
       top: 0,
@@ -205,35 +186,8 @@ const App: React.FC = () => {
     );
   };
 
-  const handleLogout = () => {
-    setMobileNavOpen(false);
+  const handleHome = () => {
     navigate('/');
-  };
-
-  const handleTabChange = (
-    tab: string
-  ) => {
-    if (
-      route.role === UserRole.HR
-    ) {
-      navigate(
-        `/hr/${
-          HR_TABS.has(tab)
-            ? tab
-            : 'dashboard'
-        }`
-      );
-
-      return;
-    }
-
-    const slug =
-      EMPLOYEE_TAB_TO_SLUG[tab] ||
-      'progress';
-
-    navigate(
-      `/employee/${slug}`
-    );
   };
 
   const handleModuleSelect = (
@@ -289,49 +243,98 @@ const App: React.FC = () => {
     );
   }
 
-  return (
-    <div className="flex min-h-screen text-slate-900">
-      <Sidebar
-        role={route.role}
-        activeTab={route.activeTab}
-        setActiveTab={
-          handleTabChange
-        }
-        onLogout={handleLogout}
-        mobileOpen={
-          mobileNavOpen
-        }
-        onMobileClose={() =>
-          setMobileNavOpen(false)
-        }
-      />
+  const isEmployee =
+    route.role === UserRole.EMPLOYEE;
 
+  return (
+    <div className="min-h-screen text-slate-900">
       <main
         ref={mainRef}
-        className="flex-1 min-w-0 p-4 sm:p-6 lg:ml-[18rem] lg:p-8 lg:mr-4 min-h-screen lg:h-screen overflow-y-auto no-scrollbar"
+        className="w-full min-w-0 min-h-screen lg:h-screen overflow-y-auto no-scrollbar p-4 sm:p-6 lg:p-8"
       >
-        <header className="flex items-center justify-between gap-3 mb-6 sm:mb-8 lg:mb-10 lg:pt-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <button
-              type="button"
-              onClick={() =>
-                setMobileNavOpen(
-                  true
-                )
-              }
-              className="lg:hidden w-11 h-11 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/50 shadow-sm flex items-center justify-center text-slate-600 flex-shrink-0"
-              aria-label={t(
-                'Open navigation',
-                'Открыть меню'
-              )}
-            >
-              <Menu className="w-5 h-5" />
-            </button>
+        <header className="max-w-7xl mx-auto mb-7 sm:mb-9">
+          <div className="bg-white/75 backdrop-blur-2xl border border-slate-200/80 shadow-sm shadow-slate-900/5 rounded-[1.75rem] px-4 sm:px-5 py-3.5">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
+              {/* LEFT */}
+              <div className="justify-self-start flex items-center gap-3 min-w-0">
+                <button
+                  type="button"
+                  onClick={handleHome}
+                  className="h-10 px-3 sm:px-4 rounded-xl bg-white/70 border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-white transition-all flex items-center gap-2 flex-shrink-0"
+                  aria-label={t(
+                    'Back to demo home',
+                    'На главную демо'
+                  )}
+                >
+                  <House className="w-4 h-4" />
 
-            <div className="bg-white/30 backdrop-blur-xl px-4 sm:px-6 py-3 rounded-2xl sm:rounded-3xl border border-white/40 shadow-sm min-w-0">
-              <h1 className="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight truncate">
-                {route.role ===
-                UserRole.EMPLOYEE
+                  <span className="hidden lg:inline text-sm font-semibold">
+                    {t(
+                      'Demo home',
+                      'Главная'
+                    )}
+                  </span>
+                </button>
+
+                <div className="hidden sm:block h-8 w-px bg-slate-200/80" />
+
+                <button
+                  type="button"
+                  onClick={handleHome}
+                  className="flex items-center gap-2.5 min-w-0 group"
+                >
+                  <span className="w-8 h-8 rounded-xl bg-indigo-600 shadow-sm shadow-indigo-600/20 flex-shrink-0" />
+
+                  <span className="hidden md:inline text-base font-bold tracking-tight text-slate-900 group-hover:text-indigo-700 transition-colors truncate">
+                    Resilience
+                  </span>
+                </button>
+              </div>
+
+              {/* CENTER */}
+              <div className="hidden sm:block text-center px-3">
+                <p className="text-sm font-bold text-slate-900 whitespace-nowrap">
+                  {isEmployee
+                    ? t(
+                        'Employee demo',
+                        'Демо сотрудника'
+                      )
+                    : t(
+                        'People analytics',
+                        'Аналитика'
+                      )}
+                </p>
+
+                <p className="text-xs text-slate-500 mt-0.5 whitespace-nowrap">
+                  {isEmployee
+                    ? t(
+                        'Private assessment experience',
+                        'Приватная оценка состояния'
+                      )
+                    : t(
+                        'Northstar Labs · synthetic demo',
+                        'Northstar Labs · synthetic demo'
+                      )}
+                </p>
+              </div>
+
+              {/* RIGHT */}
+              <div className="justify-self-end flex items-center gap-2 sm:gap-3">
+                <LanguageToggle compact />
+
+                <div className="w-10 h-10 rounded-full bg-white/80 border border-slate-200/80 flex items-center justify-center text-slate-600 text-xs font-bold shadow-inner flex-shrink-0">
+                  {t(
+                    'AM',
+                    'АИ'
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* MOBILE TITLE */}
+            <div className="sm:hidden mt-3 pt-3 border-t border-slate-200/70 text-center">
+              <p className="text-sm font-bold text-slate-900">
+                {isEmployee
                   ? t(
                       'Employee demo',
                       'Демо сотрудника'
@@ -340,80 +343,47 @@ const App: React.FC = () => {
                       'People analytics',
                       'Аналитика'
                     )}
-              </h1>
+              </p>
 
-              <p className="text-slate-500 text-xs sm:text-sm truncate">
-                {route.role ===
-                UserRole.EMPLOYEE
+              <p className="text-xs text-slate-500 mt-0.5">
+                {isEmployee
                   ? t(
                       'Private assessment experience',
                       'Приватная оценка состояния'
                     )
                   : t(
-                      'Northstar Labs • synthetic demo',
-                      'ООО «ТехноГрупп» • synthetic demo'
+                      'Northstar Labs · synthetic demo',
+                      'Northstar Labs · synthetic demo'
                     )}
               </p>
             </div>
           </div>
-
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            <div className="hidden md:block">
-              <LanguageToggle
-                compact
-              />
-            </div>
-
-            <div className="flex items-center gap-3 bg-white/30 backdrop-blur-xl sm:pl-5 pr-2 py-2 rounded-full border border-white/40 shadow-sm">
-              <div className="text-right hidden xl:block">
-                <p className="text-sm font-semibold text-slate-900">
-                  {t(
-                    'Alex Morgan',
-                    'Александр Иванов'
-                  )}
-                </p>
-
-                <p className="text-xs text-slate-500">
-                  {route.role ===
-                  UserRole.EMPLOYEE
-                    ? 'Senior Developer'
-                    : 'HR Director'}
-                </p>
-              </div>
-
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-white to-slate-100 border border-white flex items-center justify-center text-slate-600 text-xs font-bold shadow-inner">
-                {t(
-                  'AM',
-                  'АИ'
-                )}
-              </div>
-            </div>
-          </div>
         </header>
 
-        {route.role ===
-        UserRole.EMPLOYEE ? (
-          <EmployeeView
-            activeTab={
-              route.activeTab
-            }
-            selectedModuleId={
-              route.selectedModuleId
-            }
-            onModuleSelect={
-              handleModuleSelect
-            }
-            onModuleBack={
-              handleModuleBack
-            }
-          />
-        ) : (
-          <HRView
-            activeTab={
-              route.activeTab
-            }
-          />
-        )}
+        <div className="max-w-7xl mx-auto">
+          {isEmployee ? (
+            <EmployeeView
+              activeTab={
+                route.activeTab
+              }
+              selectedModuleId={
+                route.selectedModuleId
+              }
+              onModuleSelect={
+                handleModuleSelect
+              }
+              onModuleBack={
+                handleModuleBack
+              }
+            />
+          ) : (
+            <HRView
+              activeTab={
+                route.activeTab
+              }
+            />
+          )}
+        </div>
       </main>
     </div>
   );

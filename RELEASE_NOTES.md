@@ -1,5 +1,39 @@
 # Release notes
 
+## 2026-09-17 — Core investor journey visual polish
+
+This release makes the core Resilience.ai demo more focused, operational, and presentation-ready without changing assessment scoring, guidance logic, API contracts, or People data.
+
+### Unified product shell
+
+- Removed the old sidebar from the core demo journey.
+- Introduced one shared Employee / People shell while preserving the existing routes and staged journey.
+- Kept direct access to the demo home, language control, and role-specific context in a consistent header.
+
+### Guided assessment
+
+- Redesigned the 12-question assessment as four steps with three questions per step.
+- Replaced visible numeric 1–5 choices with bilingual semantic answer labels while preserving the same internal numeric values.
+- Changed the progress indicator to reflect answered questions across all 12 responses.
+- Added per-question missing-answer validation, focus and warning treatment without clearing existing answers.
+- Preserved answers when moving Back and Continue between steps.
+- Added a dedicated result-processing screen that starts the real analysis request immediately and appears before the result without fake numeric progress.
+
+### Neutral enterprise visual treatment
+
+- Replaced the pastel / rainbow background with a restrained cool-neutral foundation.
+- Applied consistent translucent neutral surfaces, subtle borders, restrained shadows, and solid-indigo emphasis across the demo home and employee journey.
+- Unified the visual treatment of Team Sustainability, Participation, factor, primary issue, intervention, and outcome cards in the People dashboard.
+- Preserved emerald, sky, amber, and rose exclusively for meaningful status communication.
+- Reworked the Employee-to-People transition as a premium neutral glass surface.
+- Validated the core journey on desktop and at 390 px mobile width.
+
+### Deferred follow-up
+
+A dedicated corporate visual-system and brand pass is intentionally deferred to a separate follow-up task. That work should define and document the long-term system in `DESIGN_SYSTEM.md` rather than expanding the scope of this release.
+
+---
+
 ## 2026-09-17 — Assessment guidance and demo-flow fixes
 
 This release fixes assessment interpretation edge cases and stabilizes the staged employee-to-People demo journey.

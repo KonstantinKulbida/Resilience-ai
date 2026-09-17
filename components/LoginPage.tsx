@@ -19,7 +19,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       <div className="w-full max-w-6xl mx-auto">
         <header className="flex items-center justify-between gap-4 mb-4 sm:mb-5">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-teal-400 to-blue-500 shadow-lg shadow-teal-500/25 flex items-center justify-center flex-shrink-0">
+            <div className="w-11 h-11 rounded-2xl bg-indigo-600 shadow-md shadow-indigo-600/20 flex items-center justify-center flex-shrink-0">
               <div className="w-4 h-4 border-2 border-white rounded-full" />
             </div>
 
@@ -28,14 +28,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </span>
           </div>
 
-          <div className="px-3 py-2 rounded-full bg-white/40 border border-white/60 text-xs font-semibold text-slate-500">
+          <div className="px-3 py-2 rounded-full bg-white/70 border border-slate-200/80 text-xs font-semibold text-slate-500 shadow-sm">
             Demo
           </div>
         </header>
 
         <main className="grid lg:grid-cols-[1.12fr_0.88fr] gap-4 sm:gap-5 lg:gap-6 items-stretch">
-          <section className="bg-white/45 backdrop-blur-2xl border border-white/55 shadow-2xl shadow-indigo-500/10 rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
-            <div className="inline-flex self-start items-center gap-2 px-3.5 py-2 rounded-full bg-white/55 border border-white/70 text-xs font-semibold text-slate-600 mb-5">
+          <section className="bg-white/75 backdrop-blur-2xl border border-slate-200/80 shadow-xl shadow-slate-900/5 rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
+            <div className="inline-flex self-start items-center gap-2 px-3.5 py-2 rounded-full bg-slate-50/90 border border-slate-200/80 text-xs font-semibold text-slate-600 mb-5">
               <ShieldCheck className="w-4 h-4 text-teal-600" />
               Private employee signals. Aggregated People insights.
             </div>
@@ -53,7 +53,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               <button
                 type="button"
                 onClick={() => onLogin(UserRole.EMPLOYEE)}
-                className="group inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-slate-900 px-6 py-4 text-white font-semibold shadow-xl shadow-slate-900/15 transition-all hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-2xl"
+                className="group inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-4 text-white font-semibold shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-700 hover:-translate-y-0.5 hover:shadow-xl"
               >
                 Take the 3-minute assessment
                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
@@ -62,7 +62,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               <button
                 type="button"
                 onClick={() => onLogin(UserRole.HR)}
-                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-white/55 border border-white/70 px-6 py-4 text-slate-700 font-semibold transition-all hover:bg-white/80 hover:-translate-y-0.5"
+                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-white/75 border border-slate-200/80 px-6 py-4 text-slate-700 font-semibold shadow-sm transition-all hover:bg-white hover:-translate-y-0.5"
               >
                 <Building2 className="w-4 h-4 text-indigo-600" />
                 View the People dashboard
@@ -74,7 +74,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </p>
           </section>
 
-          <aside className="bg-white/35 backdrop-blur-2xl border border-white/50 shadow-xl shadow-indigo-500/5 rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-7 lg:p-8 flex flex-col justify-between gap-6">
+          <aside className="bg-white/65 backdrop-blur-2xl border border-slate-200/80 shadow-xl shadow-slate-900/5 rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-7 lg:p-8 flex flex-col justify-between gap-6">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] font-bold text-indigo-600/80 mb-3">
                 Explore the core journey
@@ -85,9 +85,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               </h2>
 
               <div className="mt-6 space-y-4">
-                <div className="rounded-2xl bg-white/45 border border-white/60 p-4">
+                <div className="rounded-2xl bg-white/70 border border-slate-200/70 p-4">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-9 h-9 rounded-xl bg-white/70 flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-center">
                       <LockKeyhole className="w-4 h-4 text-teal-600" />
                     </div>
 
@@ -107,9 +107,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                   </p>
                 </div>
 
-                <div className="rounded-2xl bg-white/45 border border-white/60 p-4">
+                <div className="rounded-2xl bg-white/70 border border-slate-200/70 p-4">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-9 h-9 rounded-xl bg-white/70 flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-center">
                       <Users className="w-4 h-4 text-indigo-600" />
                     </div>
 
@@ -132,12 +132,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3 text-sm text-slate-600">
-              <div className="flex items-start gap-2.5 rounded-2xl bg-white/35 border border-white/50 p-3">
+              <div className="flex items-start gap-2.5 rounded-2xl bg-white/65 border border-slate-200/70 p-3">
                 <Clock3 className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                 <span>12 questions · ~3 min</span>
               </div>
 
-              <div className="flex items-start gap-2.5 rounded-2xl bg-white/35 border border-white/50 p-3">
+              <div className="flex items-start gap-2.5 rounded-2xl bg-white/65 border border-slate-200/70 p-3">
                 <ShieldCheck className="w-4 h-4 text-indigo-600 flex-shrink-0 mt-0.5" />
                 <span>Not a medical diagnosis</span>
               </div>

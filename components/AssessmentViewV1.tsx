@@ -6,6 +6,7 @@ import React, {
 } from 'react';
 import {
   AlertTriangle,
+  ArrowLeft,
   ArrowDown,
   ArrowRight,
   CheckCircle,
@@ -27,6 +28,38 @@ const FACTORS: SustainabilityFactor[] = [
   'recovery',
   'controlClarity',
 ];
+
+const QUESTIONS_PER_STEP = 3;
+const ASSESSMENT_STEPS = 4;
+const MIN_PROCESSING_TIME_MS = 800;
+
+const ANSWER_OPTIONS = [
+  {
+    value: 1,
+    en: 'Not true',
+    ru: 'Совсем не верно',
+  },
+  {
+    value: 2,
+    en: 'A little',
+    ru: 'Скорее нет',
+  },
+  {
+    value: 3,
+    en: 'Somewhat',
+    ru: 'Отчасти',
+  },
+  {
+    value: 4,
+    en: 'Mostly',
+    ru: 'В основном',
+  },
+  {
+    value: 5,
+    en: 'Very true',
+    ru: 'Полностью верно',
+  },
+] as const;
 
 const scrollToSection = (
   target: HTMLElement | null,
@@ -74,6 +107,14 @@ const AssessmentViewV1: React.FC = () => {
   const [answers, setAnswers] =
     useState<Record<number, number>>({});
 
+  const [assessmentStep, setAssessmentStep] =
+    useState(0);
+
+  const [
+    missingQuestionIds,
+    setMissingQuestionIds,
+  ] = useState<number[]>([]);
+
   const [result, setResult] =
     useState<WorkSustainabilityResult | null>(
       null
@@ -92,6 +133,14 @@ const AssessmentViewV1: React.FC = () => {
 
   const topRef =
     useRef<HTMLDivElement>(null);
+
+  const questionRefs =
+    useRef<
+      Record<
+        number,
+        HTMLDivElement | null
+      >
+    >({});
 
   const driversRef =
     useRef<HTMLElement>(null);
@@ -197,6 +246,94 @@ const AssessmentViewV1: React.FC = () => {
         ),
       [language]
     );
+
+  const currentQuestions =
+    questions.slice(
+      assessmentStep *
+        QUESTIONS_PER_STEP,
+      (assessmentStep + 1) *
+        QUESTIONS_PER_STEP
+    );
+
+  const answeredQuestionCount =
+    questions.filter(
+      (question) =>
+        answers[question.id] !==
+        undefined
+    ).length;
+
+  const validateCurrentStep = () => {
+    const nextMissingQuestionIds =
+      currentQuestions
+        .filter(
+          (question) =>
+            answers[
+              question.id
+            ] === undefined
+        )
+        .map(
+          (question) =>
+            question.id
+        );
+
+    setMissingQuestionIds(
+      nextMissingQuestionIds
+    );
+
+    if (
+      nextMissingQuestionIds.length ===
+      0
+    ) {
+      return true;
+    }
+
+    window.requestAnimationFrame(
+      () => {
+        const firstMissingQuestion =
+          questionRefs.current[
+            nextMissingQuestionIds[0]
+          ];
+
+        firstMissingQuestion?.focus({
+          preventScroll: true,
+        });
+
+        scrollToSection(
+          firstMissingQuestion,
+          24
+        );
+      }
+    );
+
+    return false;
+  };
+
+  const moveToAssessmentStep = (
+    nextStep: number
+  ) => {
+    setAssessmentStep(nextStep);
+    setMissingQuestionIds([]);
+    setError(null);
+
+    window.requestAnimationFrame(
+      () => {
+        scrollToSection(
+          topRef.current,
+          16
+        );
+      }
+    );
+  };
+
+  const continueAssessment = () => {
+    if (!validateCurrentStep()) {
+      return;
+    }
+
+    moveToAssessmentStep(
+      assessmentStep + 1
+    );
+  };
 
   const statusFromScore = (
     score: number
@@ -395,6 +532,10 @@ const AssessmentViewV1: React.FC = () => {
 
   const submitAssessment =
     async () => {
+      if (!validateCurrentStep()) {
+        return;
+      }
+
       if (
         Object.keys(answers).length <
         questions.length
@@ -409,6 +550,9 @@ const AssessmentViewV1: React.FC = () => {
         return;
       }
 
+      const processingStartedAt =
+        window.performance.now();
+
       setLoading(true);
       setError(null);
 
@@ -421,9 +565,27 @@ const AssessmentViewV1: React.FC = () => {
           language
         );
 
-      setLoading(false);
+      const remainingProcessingTime =
+        Math.max(
+          0,
+          MIN_PROCESSING_TIME_MS -
+            (window.performance.now() -
+              processingStartedAt)
+        );
+
+      if (remainingProcessingTime > 0) {
+        await new Promise<void>(
+          (resolve) => {
+            window.setTimeout(
+              resolve,
+              remainingProcessingTime
+            );
+          }
+        );
+      }
 
       if (!nextResult) {
+        setLoading(false);
         setError(
           t(
             'Your result could not be calculated right now. Your answers are still here — please try again.',
@@ -436,10 +598,13 @@ const AssessmentViewV1: React.FC = () => {
 
       setResultStep(1);
       setResult(nextResult);
+      setLoading(false);
     };
 
   const retake = () => {
     setAnswers({});
+    setAssessmentStep(0);
+    setMissingQuestionIds([]);
     setResult(null);
     setError(null);
     setResultStep(1);
@@ -471,15 +636,81 @@ const AssessmentViewV1: React.FC = () => {
       );
     };
 
+  if (loading) {
+    return (
+      <div
+        ref={topRef}
+        className="mx-auto max-w-3xl pb-12 animate-enter"
+      >
+        <section
+          className="relative overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white/75 p-7 text-center shadow-xl shadow-slate-900/5 backdrop-blur-xl sm:p-10"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="relative">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-indigo-100 bg-indigo-50 text-indigo-700 shadow-sm">
+              <Sparkles className="h-6 w-6 animate-pulse" />
+            </div>
+
+            <h2 className="mt-5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              {t(
+                'Preparing your result',
+                'Готовим ваш результат'
+              )}
+            </h2>
+
+            <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-slate-600">
+              {t(
+                'We’re analyzing your 12 responses across workload balance, recovery, and control & clarity.',
+                'Мы анализируем 12 ответов по трём факторам: нагрузка, восстановление, контроль и ясность.'
+              )}
+            </p>
+
+            <div className="mx-auto mt-7 grid max-w-2xl gap-2.5 sm:grid-cols-3">
+              {FACTORS.map(
+                (factor) => (
+                  <div
+                    key={factor}
+                    className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm"
+                  >
+                    <span className="h-2 w-2 rounded-full bg-indigo-500" />
+
+                    {factorLabel(
+                      factor
+                    )}
+                  </div>
+                )
+              )}
+            </div>
+
+            <div className="mx-auto mt-7 flex w-fit items-center gap-2" aria-hidden="true">
+              {[0, 1, 2].map(
+                (dot) => (
+                  <span
+                    key={dot}
+                    className="h-2.5 w-2.5 animate-pulse rounded-full bg-indigo-400"
+                    style={{
+                      animationDelay: `${dot * 160}ms`,
+                    }}
+                  />
+                )
+              )}
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   if (!result) {
     return (
       <div
         ref={topRef}
-        className="max-w-4xl mx-auto pb-12 animate-enter"
+        className="max-w-4xl mx-auto pb-8 animate-enter"
       >
-        <section className="bg-white/50 backdrop-blur-xl rounded-[2rem] p-5 sm:p-8 border border-white/60 shadow-lg shadow-indigo-500/5">
-          <div className="mb-8">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
+        <section className="bg-white/75 backdrop-blur-xl rounded-[2rem] p-5 sm:p-6 lg:p-5 border border-slate-200/80 shadow-lg shadow-slate-900/5">
+          <div className="mb-5 lg:mb-3">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1.5">
               {t(
                 'Work Sustainability assessment',
                 'Оценка устойчивости рабочего режима'
@@ -493,78 +724,112 @@ const AssessmentViewV1: React.FC = () => {
               )}
             </p>
 
-            <div className="mt-4 rounded-2xl border border-slate-200 bg-white/70 p-4 text-sm text-slate-600">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="mt-4 lg:mt-3 rounded-2xl border border-slate-200/80 bg-slate-50/90 p-4 lg:p-3">
+              <div className="flex items-center justify-between gap-4 text-sm font-bold text-slate-800">
                 <span>
-                  <strong className="text-slate-900">
-                    1
-                  </strong>{' '}
-                  —{' '}
                   {t(
-                    'Not at all true',
-                    'Совсем не похоже на меня'
+                    `Step ${assessmentStep + 1} of ${ASSESSMENT_STEPS}`,
+                    `Шаг ${assessmentStep + 1} из ${ASSESSMENT_STEPS}`
                   )}
                 </span>
 
-                <span>
-                  <strong className="text-slate-900">
-                    5
-                  </strong>{' '}
-                  —{' '}
+                <span className="text-xs font-semibold text-slate-500 text-right">
                   {t(
-                    'Very true',
-                    'Полностью похоже на меня'
+                    `${answeredQuestionCount} of ${questions.length} answered`,
+                    `${answeredQuestionCount} из ${questions.length} отвечено`
                   )}
                 </span>
               </div>
 
-              <p className="mt-2 text-xs text-slate-500">
-                {t(
-                  'This is a custom, non-clinical work-sustainability check, not a medical diagnosis.',
-                  'Это пользовательская не-клиническая оценка рабочего режима, а не медицинская диагностика.'
+              <div
+                className="mt-3 lg:mt-2.5 h-2 overflow-hidden rounded-full bg-white/80"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={questions.length}
+                aria-valuenow={answeredQuestionCount}
+                aria-label={t(
+                  'Assessment progress',
+                  'Прогресс оценки'
                 )}
-              </p>
+              >
+                <div
+                  className="h-full rounded-full bg-indigo-600 transition-[width] duration-300"
+                  style={{
+                    width: `${(answeredQuestionCount / questions.length) * 100}%`,
+                  }}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="space-y-7">
-            {questions.map(
+          <div className="space-y-5 lg:space-y-3">
+            {currentQuestions.map(
               (
                 question,
                 index
               ) => (
                 <div
                   key={question.id}
-                  className="pb-6 border-b border-slate-200/70 last:border-0 last:pb-0"
+                  ref={(element) => {
+                    questionRefs.current[
+                      question.id
+                    ] = element;
+                  }}
+                  tabIndex={-1}
+                  className={`outline-none transition-colors pb-5 lg:pb-3 ${
+                    missingQuestionIds.includes(
+                      question.id
+                    )
+                      ? '-mx-3 rounded-2xl border border-amber-200 bg-amber-50/70 px-3 pt-3 last:pb-3'
+                      : 'border-b border-slate-200/70 last:border-0 last:pb-0'
+                  }`}
                 >
-                  <div className="flex gap-3 mb-4">
+                  <div className="flex gap-3 mb-3 lg:mb-2">
                     <span className="text-xs font-bold text-slate-400 pt-1">
                       {String(
-                        index + 1
+                        assessmentStep *
+                          QUESTIONS_PER_STEP +
+                          index +
+                          1
                       ).padStart(
                         2,
                         '0'
                       )}
                     </span>
 
-                    <p className="font-medium text-slate-800 text-base sm:text-lg leading-relaxed">
-                      {question.text}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-slate-800 text-base sm:text-lg lg:text-base leading-relaxed">
+                        {question.text}
+                      </p>
+
+                      {missingQuestionIds.includes(
+                        question.id
+                      ) && (
+                        <p className="mt-1 text-xs font-bold text-amber-700">
+                          {t(
+                            'Answer required',
+                            'Нужен ответ'
+                          )}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-5 gap-2 sm:flex sm:gap-3 sm:pl-8">
-                    {[
-                      1,
-                      2,
-                      3,
-                      4,
-                      5,
-                    ].map(
-                      (value) => (
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-5 sm:pl-8">
+                    {ANSWER_OPTIONS.map(
+                      (
+                        option,
+                        optionIndex
+                      ) => (
                         <button
-                          key={value}
+                          key={option.value}
                           type="button"
-                          aria-label={`${question.text}: ${value}`}
+                          aria-label={`${question.text}: ${language === 'ru' ? option.ru : option.en}`}
+                          aria-pressed={
+                            answers[
+                              question.id
+                            ] === option.value
+                          }
                           onClick={() => {
                             setAnswers(
                               (
@@ -572,23 +837,40 @@ const AssessmentViewV1: React.FC = () => {
                               ) => ({
                                 ...previous,
                                 [question.id]:
-                                  value,
+                                  option.value,
                               })
                             );
 
                             setError(
                               null
                             );
+
+                            setMissingQuestionIds(
+                              (previous) =>
+                                previous.filter(
+                                  (id) =>
+                                    id !==
+                                    question.id
+                                )
+                            );
                           }}
-                          className={`w-full sm:w-12 h-11 sm:h-12 rounded-xl sm:rounded-2xl text-base font-semibold transition-all duration-200 ${
+                          className={`min-h-12 lg:min-h-11 w-full rounded-xl border px-3 py-2.5 lg:py-2 text-sm sm:text-[0.8125rem] font-semibold leading-snug transition-all duration-200 ${
+                            optionIndex ===
+                            ANSWER_OPTIONS.length -
+                              1
+                              ? 'col-span-2 sm:col-span-1'
+                              : ''
+                          } ${
                             answers[
                               question.id
-                            ] === value
-                              ? 'bg-slate-900 text-white shadow-lg scale-105'
-                              : 'bg-white/70 text-slate-600 border border-slate-200 hover:bg-white hover:border-slate-300'
+                            ] === option.value
+                              ? 'border-indigo-400 bg-indigo-50 text-indigo-950 shadow-sm ring-2 ring-indigo-100'
+                              : 'border-slate-200 bg-white/80 text-slate-700 hover:border-indigo-200 hover:bg-indigo-50/50'
                           }`}
                         >
-                          {value}
+                          {language === 'ru'
+                            ? option.ru
+                            : option.en}
                         </button>
                       )
                     )}
@@ -608,26 +890,77 @@ const AssessmentViewV1: React.FC = () => {
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={
-              submitAssessment
-            }
-            disabled={
-              loading
-            }
-            className="mt-8 bg-slate-900 hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed text-white px-8 py-4 rounded-2xl text-base font-medium w-full flex justify-center items-center transition-all shadow-xl"
-          >
-            {loading
-              ? t(
-                  'Calculating your result…',
-                  'Рассчитываем ваш результат…'
-                )
-              : t(
-                  'View my result',
-                  'Посмотреть результат'
-                )}
-          </button>
+          <div className="mt-6 lg:mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+            {assessmentStep > 0 ? (
+              <button
+                type="button"
+                onClick={() =>
+                  moveToAssessmentStep(
+                    assessmentStep - 1
+                  )
+                }
+                disabled={loading}
+                className="min-h-12 lg:min-h-11 w-full rounded-2xl border border-slate-200 bg-white/75 px-6 py-3.5 lg:py-2.5 text-base font-semibold text-slate-700 transition-all hover:border-indigo-200 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+
+                  {t(
+                    'Back',
+                    'Назад'
+                  )}
+                </span>
+              </button>
+            ) : null}
+
+            {assessmentStep <
+            ASSESSMENT_STEPS - 1 ? (
+              <button
+                type="button"
+                onClick={
+                  continueAssessment
+                }
+                className="min-h-12 lg:min-h-11 w-full rounded-2xl bg-indigo-600 px-8 py-3.5 lg:py-2.5 text-base font-semibold text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none sm:ml-auto sm:w-auto"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  {t(
+                    'Continue',
+                    'Продолжить'
+                  )}
+
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={
+                  submitAssessment
+                }
+                disabled={
+                  loading
+                }
+                className="min-h-12 lg:min-h-11 w-full rounded-2xl bg-indigo-600 px-8 py-3.5 lg:py-2.5 text-base font-semibold text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none sm:ml-auto sm:w-auto"
+              >
+                {loading
+                  ? t(
+                      'Calculating your result…',
+                      'Рассчитываем ваш результат…'
+                    )
+                  : t(
+                      'Calculate my result',
+                      'Рассчитать мой результат'
+                    )}
+              </button>
+            )}
+          </div>
+
+          <p className="mt-4 lg:mt-2 text-center text-xs leading-relaxed text-slate-500">
+            {t(
+              'This is a custom, non-clinical work-sustainability check, not a medical diagnosis.',
+              'Это пользовательская не-клиническая оценка рабочего режима, а не медицинская диагностика.'
+            )}
+          </p>
         </section>
       </div>
     );
@@ -716,8 +1049,7 @@ const AssessmentViewV1: React.FC = () => {
         </button>
       </div>
 
-      <section className="bg-white/60 backdrop-blur-xl text-slate-900 rounded-[2.5rem] p-6 sm:p-10 border border-white/75 shadow-xl shadow-indigo-500/10 overflow-hidden relative">
-        <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-indigo-200/25" />
+      <section className="bg-white/75 backdrop-blur-xl text-slate-900 rounded-[2.5rem] p-6 sm:p-10 border border-slate-200/80 shadow-xl shadow-slate-900/5 overflow-hidden relative">
 
         <div className="relative grid lg:grid-cols-[1fr_auto] gap-8 lg:items-end">
           <div>
@@ -765,7 +1097,7 @@ const AssessmentViewV1: React.FC = () => {
           <div className="w-full lg:w-44">
             <div className="h-2 rounded-full bg-slate-200/80 overflow-hidden">
               <div
-                className="h-full rounded-full bg-slate-900 transition-all duration-700"
+                className="h-full rounded-full bg-indigo-600 transition-all duration-700"
                 style={{
                   width: `${result.score}%`,
                 }}
@@ -791,7 +1123,7 @@ const AssessmentViewV1: React.FC = () => {
             onClick={() =>
               setResultStep(2)
             }
-            className="self-start sm:self-auto inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800"
+            className="self-start sm:self-auto inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700"
           >
             {t(
               'See what shapes your score',
@@ -839,18 +1171,18 @@ const AssessmentViewV1: React.FC = () => {
                 return (
                   <article
                     key={factor}
-                    className={`bg-white/55 backdrop-blur-xl rounded-[2rem] p-5 sm:p-6 border shadow-sm transition-all ${
+                    className={`bg-white/75 backdrop-blur-xl rounded-[2rem] p-5 sm:p-6 border shadow-sm transition-all ${
                       factor ===
                           displayWeakestFactor &&
                       !isPerfectProfile
                         ? factorStatus ===
                           'green'
-                          ? 'border-emerald-200/90 bg-white/75 ring-2 ring-emerald-100 shadow-md'
+                          ? 'border-emerald-200/90 ring-2 ring-emerald-100 shadow-md'
                           : factorStatus ===
                               'stable'
-                            ? 'border-sky-200/90 bg-white/75 ring-2 ring-sky-100 shadow-md'
-                            : 'border-rose-200/90 bg-white/75 ring-2 ring-rose-100 shadow-md'
-                        : 'border-white/70'
+                            ? 'border-sky-200/90 ring-2 ring-sky-100 shadow-md'
+                            : 'border-rose-200/90 ring-2 ring-rose-100 shadow-md'
+                        : 'border-slate-200/80'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3 mb-5">
@@ -918,7 +1250,7 @@ const AssessmentViewV1: React.FC = () => {
 
                     <div className="h-2 rounded-full bg-slate-100 overflow-hidden mb-4">
                       <div
-                        className="h-full rounded-full bg-slate-800 transition-all duration-700"
+                        className="h-full rounded-full bg-indigo-600 transition-all duration-700"
                         style={{
                           width: `${factorResult.score}%`,
                         }}
@@ -943,7 +1275,7 @@ const AssessmentViewV1: React.FC = () => {
               onClick={() =>
                 setResultStep(3)
               }
-              className="inline-flex items-center gap-2 rounded-xl bg-white/70 px-4 py-2.5 text-sm font-bold text-slate-700 border border-white/80 shadow-sm transition hover:bg-white hover:text-slate-950"
+              className="inline-flex items-center gap-2 rounded-xl bg-white/80 px-4 py-2.5 text-sm font-bold text-slate-700 border border-slate-200/80 shadow-sm transition hover:bg-white hover:text-slate-950"
             >
               {t(
                 'What matters most right now',
@@ -959,10 +1291,10 @@ const AssessmentViewV1: React.FC = () => {
       {resultStep >= 3 && (
         <section
           ref={insightRef}
-          className="bg-indigo-50/70 border border-indigo-100 rounded-[2rem] p-5 sm:p-7"
+          className="bg-white/75 backdrop-blur-xl border border-slate-200/80 rounded-[2rem] p-5 sm:p-7 shadow-sm"
         >
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-sm flex-none">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shadow-sm flex-none">
               <Sparkles className="w-5 h-5 text-indigo-600" />
             </div>
 
@@ -990,7 +1322,7 @@ const AssessmentViewV1: React.FC = () => {
                 onClick={() =>
                   setResultStep(4)
                 }
-                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/10 transition hover:bg-indigo-700"
+                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700"
               >
                 {t(
                   'See what you can do',
@@ -1091,7 +1423,7 @@ const AssessmentViewV1: React.FC = () => {
               }) => (
                 <article
                   key={label}
-                  className="bg-white/55 backdrop-blur-xl rounded-[2rem] p-5 sm:p-6 border border-white/70 shadow-sm"
+                  className="bg-white/75 backdrop-blur-xl rounded-[2rem] p-5 sm:p-6 border border-slate-200/80 shadow-sm"
                 >
                   <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center mb-4">
                     <Icon className="w-4 h-4 text-slate-700" />
@@ -1119,7 +1451,7 @@ const AssessmentViewV1: React.FC = () => {
               onClick={() =>
                 setResultStep(5)
               }
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700"
             >
               {t(
                 'Continue',
@@ -1137,7 +1469,7 @@ const AssessmentViewV1: React.FC = () => {
           ref={finalRef}
           className="space-y-6 sm:space-y-8"
         >
-          <div className="bg-white/55 backdrop-blur-xl rounded-[2rem] p-5 sm:p-7 border border-white/70 shadow-sm">
+          <div className="bg-white/75 backdrop-blur-xl rounded-[2rem] p-5 sm:p-7 border border-slate-200/80 shadow-sm">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center flex-none">
                 <Lock className="w-5 h-5 text-slate-700" />
@@ -1191,31 +1523,31 @@ const AssessmentViewV1: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-slate-900 text-white rounded-[2rem] p-5 sm:p-7 shadow-xl shadow-slate-900/10">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+          <div className="relative overflow-hidden rounded-[2rem] border border-indigo-200/80 bg-white/80 p-5 shadow-xl shadow-slate-900/5 backdrop-blur-xl sm:p-7">
+            <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
               <div className="max-w-3xl">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-teal-300 mb-2">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-600 mb-2">
                   {t(
                     'Continue the demo',
                     'Продолжить демо'
                   )}
                 </p>
 
-                <h2 className="text-xl sm:text-2xl font-bold mb-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
                   {t(
                     'Now see the People side.',
                     'Теперь посмотрите на продукт со стороны People-команды.'
                   )}
                 </h2>
 
-                <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+                <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
                   {t(
                     'You’ve completed the employee experience. Now see how the same model is presented from the People side, using privacy-safe aggregated synthetic team data and an organisational action loop.',
                     'Вы прошли путь сотрудника. Теперь посмотрите, как та же модель представлена со стороны People-команды — через приватные агрегированные синтетические данные команды и цикл организационных действий.'
                   )}
                 </p>
 
-                <p className="mt-3 text-xs text-slate-400">
+                <p className="mt-3 text-xs text-slate-500">
                   {t(
                     'Demo transition only • Employees do not have access to the People dashboard.',
                     'Только переход внутри демо • Сотрудники не имеют доступа к People dashboard.'
@@ -1228,7 +1560,7 @@ const AssessmentViewV1: React.FC = () => {
                 onClick={
                   goToPeopleDemo
                 }
-                className="group inline-flex min-h-12 flex-shrink-0 items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-bold text-slate-900 transition hover:bg-slate-100"
+                className="group inline-flex min-h-12 flex-shrink-0 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700"
               >
                 {t(
                   'View the aggregated People demo',
