@@ -128,8 +128,8 @@ const ManagerView: React.FC = () => {
 
         <p className="mt-6 text-xs text-slate-500">
           {t(
-            'Individual answers, participant identities, invite tokens, and individual scores are never shown here. A department appears only after 5+ completed baseline responses.',
-            'Индивидуальные ответы, личности участников, ссылки-приглашения и персональные баллы здесь не показываются. Подразделение раскрывается только после 5+ завершённых baseline-ответов.'
+            'Operational rollout counts are shown so managers can see that the process is moving. Individual answers, participant identities, invite tokens, and individual scores are never shown. Aggregate results unlock only after 5+ completed baseline responses.',
+            'Операционные счётчики показывают, что сбор данных идёт. Индивидуальные ответы, личности участников, ссылки-приглашения и персональные баллы не показываются. Агрегированные результаты открываются только после 5+ завершённых baseline-оценок.'
           )}
         </p>
       </Card>
@@ -143,15 +143,42 @@ const DepartmentCard: React.FC<{
   t: (en: string, ru: string) => string;
 }> = ({ department, language, t }) => {
   if (!department.ready) {
+    const remaining = Math.max(
+      0,
+      department.progress.unlockAt - department.progress.completed
+    );
+
     return (
-      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-        <p className="font-semibold">{department.displayName}</p>
-        <p className="mt-1 text-sm text-slate-600">
-          {t(
-            'Not enough completed responses yet. Results will appear after the privacy threshold is reached.',
-            'Пока недостаточно завершённых ответов. Результаты появятся после достижения порога приватности.'
-          )}
-        </p>
+      <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="font-semibold">{department.displayName}</p>
+            <p className="mt-1 text-sm text-slate-600">
+              {t(
+                'Rollout is in progress. Aggregate results will appear after the privacy threshold is reached.',
+                'Сбор данных идёт. Агрегированный результат появится после достижения порога приватности.'
+              )}
+            </p>
+          </div>
+
+          <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+            {t('Collecting responses', 'Идёт сбор ответов')}
+          </span>
+        </div>
+
+        <ProgressFunnel department={department} t={t} />
+
+        <div className="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+          {remaining > 0
+            ? t(
+                remaining + ' more completed check-ins are needed to unlock the aggregate.',
+                'До открытия агрегированного результата нужно ещё ' + remaining + ' завершённых оценок.'
+              )
+            : t(
+                'The privacy threshold has been reached. Results are being prepared.',
+                'Порог приватности достигнут. Готовим агрегированный результат.'
+              )}
+        </div>
       </div>
     );
   }
@@ -177,6 +204,8 @@ const DepartmentCard: React.FC<{
         </div>
       </div>
 
+      <ProgressFunnel department={department} t={t} />
+
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         {Object.entries(department.factors).map(([factor, value]) => (
           <div key={factor} className="rounded-xl bg-slate-50 p-4">
@@ -194,6 +223,65 @@ const DepartmentCard: React.FC<{
           {factorLabels[department.weakestFactor][language]}
         </span>
       </p>
+    </div>
+  );
+};
+
+const ProgressFunnel: React.FC<{
+  department: AlphaManagerDepartment;
+  t: (en: string, ru: string) => string;
+}> = ({ department, t }) => {
+  const { invitesIssued, opened, completed, unlockAt } = department.progress;
+  const progressPercent =
+    unlockAt > 0 ? Math.min(100, Math.round((completed / unlockAt) * 100)) : 0;
+
+  const items = [
+    {
+      label: t('Links issued', 'Ссылок выдано'),
+      value: invitesIssued,
+    },
+    {
+      label: t('Opened check-in', 'Открыли тест'),
+      value: opened,
+    },
+    {
+      label: t('Completed', 'Завершили оценку'),
+      value: completed,
+    },
+  ];
+
+  return (
+    <div className="mt-5">
+      <div className="grid gap-3 sm:grid-cols-3">
+        {items.map((item) => (
+          <div
+            key={item.label}
+            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+          >
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              {item.label}
+            </p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">{item.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {!department.ready && (
+        <div className="mt-4">
+          <div className="flex items-center justify-between gap-3 text-xs text-slate-500">
+            <span>{t('Progress to aggregate', 'Прогресс до агрегата')}</span>
+            <span>
+              {completed}/{unlockAt}
+            </span>
+          </div>
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="h-full rounded-full bg-indigo-600 transition-[width]"
+              style={{ width: progressPercent + '%' }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
