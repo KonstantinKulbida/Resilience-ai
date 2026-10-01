@@ -3,6 +3,8 @@ import { getAlphaDb } from '../../server/alpha/db.js';
 import employeeSessionHandler from './session.js';
 import assessmentHandler from './assessment.js';
 import managerSessionHandler from './manager/session.js';
+import { findManagerAccess } from '../../server/alpha/managerRepository.js';
+import { isPlausibleToken } from '../../server/alpha/tokens.js';
 
 type Capture = { statusCode: number; body: any };
 const invoke = async (handler: any, body: any): Promise<Capture> => {
@@ -73,6 +75,19 @@ export default async function handler(req: any, res: any) {
     `;
     managerId = Number(manager[0].id);
 
+    const directManager = await findManagerAccess(managerToken);
+    const storedManager = await sql`
+      SELECT
+        token_hash = ${hash(managerToken)} AS hash_matches,
+        active,
+        role,
+        organization_id,
+        org_unit_id
+      FROM alpha_manager_access
+      WHERE id = ${managerId}
+      LIMIT 1
+    `;
+
     const before = await invoke(managerSessionHandler, {
       token: managerToken,
       language: 'en',
@@ -110,6 +125,9 @@ export default async function handler(req: any, res: any) {
     const completeProgress = afterComplete.body?.departments?.[0]?.progress;
 
     const checks = {
+      tokenPlausible: isPlausibleToken(managerToken),
+      storedHashMatches: storedManager[0]?.hash_matches === true,
+      directManagerFound: Boolean(directManager),
       managerValid: before.statusCode === 200 && before.body?.valid === true,
       employeeValid:
         employeeSession.statusCode === 200 && employeeSession.body?.valid === true,
