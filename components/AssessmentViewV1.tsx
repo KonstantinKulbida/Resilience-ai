@@ -1315,20 +1315,22 @@ const AssessmentViewV1: React.FC = () => {
                 {result.insight}
               </p>
 
-              <button
-                type="button"
-                onClick={() =>
-                  setResultStep(4)
-                }
-                className={`mt-5 ${RESULT_REVEAL_BUTTON_CLASS}`}
-              >
-                {t(
-                  'See what you can do',
-                  'Посмотреть, что можно сделать'
-                )}
+              <div className="mt-5 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setResultStep(4)
+                  }
+                  className={RESULT_REVEAL_BUTTON_CLASS}
+                >
+                  {t(
+                    'See what you can do',
+                    'Посмотреть, что можно сделать'
+                  )}
 
-                <ArrowDown className="w-4 h-4" />
-              </button>
+                  <ArrowDown className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         </section>
