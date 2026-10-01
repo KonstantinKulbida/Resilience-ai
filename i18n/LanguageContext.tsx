@@ -4,7 +4,10 @@ import type { AppLanguage } from '../types';
 
 type Language = AppLanguage;
 
-const STORAGE_KEY = 'resilience-language';
+// v2 intentionally ignores the old key, which could have been populated by the
+// previous demo login flow forcing English. First load now follows the browser/OS
+// language; a manual toggle is then persisted normally.
+const STORAGE_KEY = 'resilience-language-v2';
 
 const detectLanguage = (): Language => {
   try {
@@ -14,7 +17,11 @@ const detectLanguage = (): Language => {
     // Storage can be unavailable in restricted browser contexts; language detection still works.
   }
 
-  const browserLanguage = window.navigator.languages?.[0] || window.navigator.language || 'en';
+  const browserLanguage =
+    window.navigator.languages?.[0] ||
+    window.navigator.language ||
+    'en';
+
   return browserLanguage.toLowerCase().startsWith('ru') ? 'ru' : 'en';
 };
 
