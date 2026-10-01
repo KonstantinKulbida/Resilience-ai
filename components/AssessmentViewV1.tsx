@@ -1155,7 +1155,7 @@ const AssessmentViewV1: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid lg:grid-cols-3 gap-4 sm:gap-5 items-stretch">
             {FACTORS.map(
               (factor) => {
                 const factorResult =
@@ -1171,7 +1171,7 @@ const AssessmentViewV1: React.FC = () => {
                 return (
                   <article
                     key={factor}
-                    className={`bg-white/75 backdrop-blur-xl rounded-[2rem] p-5 sm:p-6 border shadow-sm transition-all ${
+                    className={`flex h-full flex-col bg-white/75 backdrop-blur-xl rounded-[2rem] p-5 sm:p-6 border shadow-sm transition-all ${
                       factor ===
                           displayWeakestFactor &&
                       !isPerfectProfile
@@ -1185,57 +1185,46 @@ const AssessmentViewV1: React.FC = () => {
                         : 'border-slate-200/80'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3 mb-5">
-                      <div>
-                        <h3 className="font-bold text-slate-900">
-                          {factorLabel(
-                            factor
-                          )}
-                        </h3>
+                    <div className="mb-5 min-h-[4.75rem]">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-base font-bold leading-snug text-slate-900">
+                            {factorLabel(
+                              factor
+                            )}
+                          </h3>
 
-                        {factor ===
-                          displayWeakestFactor &&
-                          !isPerfectProfile && (
-                            <span
-                              className={`mt-1.5 inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide border ${
-                                factorStatus ===
-                                'green'
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                  : factorStatus ===
-                                      'stable'
-                                    ? 'bg-sky-50 text-sky-700 border-sky-100'
-                                    : 'bg-rose-50 text-rose-700 border-rose-100'
-                              }`}
-                            >
-                              {factorStatus ===
-                              'green'
-                                ? t(
-                                    'Area to protect',
-                                    'Зона, которую стоит сохранить'
-                                  )
-                                : factorStatus ===
-                                    'stable'
-                                  ? t(
-                                      'Area to watch',
-                                      'Зона для наблюдения'
-                                    )
-                                  : t(
-                                      'Main pressure point',
-                                      'Главная зона напряжения'
-                                    )}
-                            </span>
+                          {factor ===
+                            displayWeakestFactor &&
+                            !isPerfectProfile && (
+                              <span
+                                className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide border ${factorStatus ===
+                                  'green'
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                    : factorStatus ===
+                                        'stable'
+                                      ? 'bg-sky-50 text-sky-700 border-sky-100'
+                                      : 'bg-rose-50 text-rose-700 border-rose-100'
+                                }`}
+                              >
+                                {t(
+                                  'Primary factor',
+                                  'Главный фактор'
+                                )}
+                              </span>
+                            )}
+                        </div>
+
+                        <span
+                          className={`shrink-0 whitespace-nowrap px-2.5 py-1 rounded-full border text-[11px] font-bold ${statusClasses(
+                            factorStatus
+                          )}`}
+                        >
+                          {factorStatusLabel(
+                            factorStatus
                           )}
+                        </span>
                       </div>
-
-                      <span
-                        className={`px-2.5 py-1 rounded-full border text-[11px] font-bold ${statusClasses(
-                          factorStatus
-                        )}`}
-                      >
-                        {factorStatusLabel(
-                          factorStatus
-                        )}
-                      </span>
                     </div>
 
                     <div className="flex items-end gap-2 mb-3">
@@ -1257,7 +1246,7 @@ const AssessmentViewV1: React.FC = () => {
                       />
                     </div>
 
-                    <p className="text-sm text-slate-600 leading-relaxed">
+                    <p className="mt-auto text-sm text-slate-600 leading-relaxed">
                       {factorDescription(
                         factor,
                         factorStatus
