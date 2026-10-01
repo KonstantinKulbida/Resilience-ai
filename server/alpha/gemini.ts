@@ -113,9 +113,11 @@ Return:
 - insightEn and insightRu: equivalent localized interpretations, each 4–6 concise sentences.
   * Ground the interpretation in at least two concrete questionnaire signals.
   * Explain the likely work pattern connecting those signals and why it matters.
-  * Use a relatively stronger factor as a practical resource or contrast when useful.
+  * Use a relatively stronger factor as a practical resource or contrast when useful, but do not attribute it to personal skill or resilience unless the answers directly support that.
   * Avoid generic tautologies such as "your workload is high, so reduce workload".
   * Distinguish observation from certainty: say "this pattern may suggest" rather than inventing facts.
+  * Do not repeat numeric scores in the prose unless essential; the employee already sees the scores.
+  * Work-context examples such as sprint commitments, incoming requests, meetings, or deadlines must be framed as hypotheses to test, not observed facts.
 - todayRationaleEn / todayRationaleRu: 1–2 concise sentences explaining why the fixed TODAY action fits this specific pattern and what observable signal to watch after trying it.
 - weekRationaleEn / weekRationaleRu: 1–2 concise sentences explaining why the fixed THIS WEEK action fits and what it is intended to test or change.
 - supportRationaleEn / supportRationaleRu: 1–2 concise sentences explaining when the fixed SUPPORT action becomes appropriate and what concrete work constraint it is meant to surface.
