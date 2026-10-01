@@ -148,8 +148,8 @@ export default async function handler(req: any, res: any) {
     });
   } finally {
     try {
-      if (managerIds.length > 0) {
-        await sql`DELETE FROM alpha_manager_access WHERE id = ANY(${managerIds})`;
+      for (const managerId of managerIds) {
+        await sql`DELETE FROM alpha_manager_access WHERE id = ${managerId}`;
       }
 
       if (participantId) {
