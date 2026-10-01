@@ -1,5 +1,33 @@
 # Release notes
 
+## 2026-10-01 — Demo sandbox separation and locale detection
+
+This follow-up corrects two demo behaviors without changing assessment scoring, recommendation logic, or People data.
+
+### Sandbox separation
+
+- The public employee sandbox remains available at `/employee/assessment` without an invite link.
+- Employees can still complete and retake the sandbox assessment.
+- The post-assessment transition from the employee sandbox into the People / HR dashboard has been removed.
+- The People dashboard remains accessible only from the demo start screen as a separate role choice.
+
+### Language behavior
+
+- The demo home is now fully bilingual EN / RU.
+- Initial language follows the browser / operating-system locale (`ru*` → Russian, otherwise English).
+- The previous demo-login behavior that forced English has been removed.
+- A manual language choice remains available and persists across reloads.
+- The language preference storage key was versioned so old values created by the former forced-English flow do not override the new system-language detection.
+
+### Deployment validation
+
+- Production `main` deployed successfully on Vercel.
+- Production bundle contains browser locale detection and the Russian home copy.
+- The production bundle no longer contains the post-assessment `View the aggregated People demo` transition.
+- The start-screen `View the People dashboard` entry remains available.
+
+---
+
 ## 2026-09-17 — Mobile assessment step-scroll fix
 
 This follow-up fixes a production mobile regression in the four-step assessment. Moving forward or backward between steps now scrolls to the assessment heading and step progress instead of leaving the viewport near the bottom of the card.
