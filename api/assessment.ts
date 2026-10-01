@@ -100,9 +100,12 @@ export default async function handler(
 
   let selectedIds = defaultIds;
   let aiEnhanced = false;
+  let personalization:
+    | Awaited<ReturnType<typeof generateAssessmentPersonalization>>
+    | null = null;
 
   try {
-    const personalization =
+    personalization =
       await generateAssessmentPersonalization(
         scores,
         responseLanguage
@@ -132,18 +135,33 @@ export default async function handler(
     weakestFactor: scores.weakestFactor,
     insight,
     actions: {
-      today: resolveAction(
-        selectedIds.today,
-        responseLanguage
-      ),
-      week: resolveAction(
-        selectedIds.week,
-        responseLanguage
-      ),
-      support: resolveAction(
-        selectedIds.support,
-        responseLanguage
-      ),
+      today: {
+        ...resolveAction(
+          selectedIds.today,
+          responseLanguage
+        ),
+        ...(aiEnhanced
+          ? { rationale: personalization!.todayRationale }
+          : {}),
+      },
+      week: {
+        ...resolveAction(
+          selectedIds.week,
+          responseLanguage
+        ),
+        ...(aiEnhanced
+          ? { rationale: personalization!.weekRationale }
+          : {}),
+      },
+      support: {
+        ...resolveAction(
+          selectedIds.support,
+          responseLanguage
+        ),
+        ...(aiEnhanced
+          ? { rationale: personalization!.supportRationale }
+          : {}),
+      },
     },
     aiEnhanced,
   });
