@@ -2,8 +2,9 @@ import { getAlphaDb } from './db.js';
 import { hashSecretToken } from './tokens.js';
 import { ALPHA_VERSIONS } from './versions.js';
 import { selectAlphaRecommendations, insightFor } from './recommendations.js';
-import type { AlphaLanguage, AlphaResult } from '../../alpha/types';
-import type { DeterministicAssessmentScores } from '../assessmentScoring';
+import { generateAlphaInterpretation } from './gemini.js';
+import type { AlphaLanguage, AlphaResult } from '../../alpha/types.js';
+import type { DeterministicAssessmentScores } from '../assessmentScoring.js';
 
 export type Participant = {
   id: number; orgUnitId: number; slug: string; displayName: string; workContext: string;
@@ -30,12 +31,18 @@ const resultFromRow = (row: any, participant: Participant, language: AlphaLangua
   const weakestFactor = row.weakest_factor;
   const weakIds = Array.isArray(row.weakest_question_ids) ? row.weakest_question_ids.map(Number) : [];
   const actions = selectAlphaRecommendations(weakestFactor, weakIds, participant.workContext, language);
+  const aiInsight =
+    language === 'ru' ? row.ai_insight_ru : row.ai_insight_en;
+  const hasAiInsight =
+    typeof aiInsight === 'string' && aiInsight.trim().length > 0;
+
   return {
     wave:'baseline', score:Number(row.overall_score), status: row.overall_status,
     factors: row.factor_scores, weakestFactor, weakestQuestionIds:weakIds,
     selectedActionIds:[actions.today.id,actions.week.id,actions.support.id],
-    submittedAt:new Date(row.submitted_at).toISOString(), insight:insightFor(weakestFactor,language),
-    actions, aiEnhanced:false
+    submittedAt:new Date(row.submitted_at).toISOString(),
+    insight: hasAiInsight ? aiInsight : insightFor(weakestFactor,language),
+    actions, aiEnhanced:hasAiInsight
   };
 };
 
@@ -55,6 +62,7 @@ export const saveBaseline = async (participant: Participant, answers: Record<str
   const sql=getAlphaDb();
   const actions=selectAlphaRecommendations(scores.weakestFactor,scores.weakestQuestionIds,participant.workContext,language);
   const ids=[actions.today.id,actions.week.id,actions.support.id];
+
   const inserted=await sql`
     INSERT INTO alpha_assessments
       (participant_id,org_unit_id,wave,questionnaire_version,scoring_version,recommendation_version,answers,overall_score,factor_scores,question_scores,weakest_factor,weakest_question_ids,selected_action_ids)
@@ -62,6 +70,30 @@ export const saveBaseline = async (participant: Participant, answers: Record<str
       (${participant.id},${participant.orgUnitId},'baseline',${participant.questionnaireVersion},${participant.scoringVersion},${ALPHA_VERSIONS.recommendation},
        ${sql.json(answers)},${scores.score},${sql.json(scores.factors)},${sql.json(scores.questionScores)},${scores.weakestFactor},${sql.json(scores.weakestQuestionIds)},${sql.json(ids)})
     ON CONFLICT (participant_id,wave) DO NOTHING RETURNING id`;
+
+  if (inserted.length > 0) {
+    const [enResult, ruResult] = await Promise.allSettled([
+      generateAlphaInterpretation(scores, 'en', participant.workContext),
+      generateAlphaInterpretation(scores, 'ru', participant.workContext),
+    ]);
+
+    const insightEn = enResult.status === 'fulfilled' ? enResult.value : null;
+    const insightRu = ruResult.status === 'fulfilled' ? ruResult.value : null;
+
+    if (enResult.status === 'rejected' || ruResult.status === 'rejected') {
+      console.error('Alpha Gemini interpretation fallback used');
+    }
+
+    if (insightEn || insightRu) {
+      await sql`
+        UPDATE alpha_assessments
+        SET ai_insight_en = ${insightEn},
+            ai_insight_ru = ${insightRu}
+        WHERE id = ${Number(inserted[0].id)}
+      `;
+    }
+  }
+
   const result=await getBaseline(participant,language);
   if (!result) throw new Error('Assessment persistence failed');
   return {alreadySubmitted:inserted.length===0,result};
