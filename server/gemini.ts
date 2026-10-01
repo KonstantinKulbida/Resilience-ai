@@ -15,6 +15,20 @@ const getClient = () => {
   return new GoogleGenAI({ apiKey });
 };
 
+const wait = (ms: number) =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
+const isTransientGeminiError = (error: unknown) => {
+  const message = String((error as any)?.message || error || '');
+  return (
+    message.includes('503') ||
+    message.includes('UNAVAILABLE') ||
+    message.toLowerCase().includes('high demand') ||
+    message.toLowerCase().includes('temporarily')
+  );
+};
 export const generatePersonalizedAdvice = async (
   mood: string,
   stressLevel: number,
@@ -108,7 +122,7 @@ export const generateAssessmentPersonalization = async (
   const weekIds = getAllowedActionIds(scores.weakestFactor, 'week').join(', ');
   const supportIds = getAllowedActionIds(scores.weakestFactor, 'support').join(', ');
 
-  const response = await ai.models.generateContent({
+  const run = async () => ai.models.generateContent({
     model: 'gemini-3.6-flash',
     contents: `
 You are the personalization layer of a non-clinical employee work-sustainability product.
@@ -174,14 +188,32 @@ Do not invent new action IDs or new employee facts. ${languageInstruction}
     },
   });
 
-  if (!response.text) {
-    throw new Error('Gemini returned an empty assessment personalization response');
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const response = await run();
+
+      if (!response.text) {
+        throw new Error('Gemini returned an empty assessment personalization response');
+      }
+
+      const parsed: unknown = JSON.parse(response.text);
+      if (!isAssessmentPersonalizationSelection(parsed, scores)) {
+        throw new Error('Gemini returned an invalid assessment personalization payload');
+      }
+
+      return parsed;
+    } catch (error) {
+      lastError = error;
+
+      if (!isTransientGeminiError(error) || attempt === 2) {
+        throw error;
+      }
+
+      await wait(attempt === 0 ? 350 : 900);
+    }
   }
 
-  const parsed: unknown = JSON.parse(response.text);
-  if (!isAssessmentPersonalizationSelection(parsed, scores)) {
-    throw new Error('Gemini returned an invalid assessment personalization payload');
-  }
-
-  return parsed;
+  throw lastError;
 };
