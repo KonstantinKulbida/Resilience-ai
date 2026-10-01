@@ -294,7 +294,22 @@ const App: React.FC = () => {
                   onClick={handleHome}
                   className="flex items-center gap-2.5 min-w-0 group"
                 >
-                  <span className="w-8 h-8 rounded-xl bg-indigo-600 shadow-sm shadow-indigo-600/20 flex-shrink-0" />
+                  <span className="relative w-8 h-8 rounded-xl bg-indigo-600 shadow-sm shadow-indigo-600/20 flex-shrink-0">
+                    <svg
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                      className="absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 text-white"
+                    >
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="7.25"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.25"
+                      />
+                    </svg>
+                  </span>
 
                   <span className="hidden md:inline text-base font-bold tracking-tight text-slate-900 group-hover:text-indigo-700 transition-colors truncate">
                     Resilience
@@ -330,15 +345,8 @@ const App: React.FC = () => {
               </div>
 
               {/* RIGHT */}
-              <div className="justify-self-end flex items-center gap-2 sm:gap-3">
+              <div className="justify-self-end flex items-center">
                 <LanguageToggle compact />
-
-                <div className="w-10 h-10 rounded-full bg-white/80 border border-slate-200/80 flex items-center justify-center text-slate-600 text-xs font-bold shadow-inner flex-shrink-0">
-                  {t(
-                    'AM',
-                    'АИ'
-                  )}
-                </div>
               </div>
             </div>
 
