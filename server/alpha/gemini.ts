@@ -71,9 +71,9 @@ export const generateAlphaInterpretations = async (
     })
     .join('\n');
 
-  const run = async () => {
+  const run = async (model: string) => {
     const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
+      model,
       contents: `
 You are the interpretation layer of a non-clinical employee work-sustainability product.
 
@@ -198,13 +198,14 @@ Rules:
   };
 
   let lastError: unknown;
+  const modelSequence = ['gemini-3.8-flash', 'gemini-3.8-flash', 'gemini-3.5-flash'];
 
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  for (let attempt = 0; attempt < modelSequence.length; attempt += 1) {
     try {
-      return await run();
+      return await run(modelSequence[attempt]);
     } catch (error) {
       lastError = error;
-      if (!isTransientGeminiError(error) || attempt === 2) {
+      if (!isTransientGeminiError(error) || attempt === modelSequence.length - 1) {
         throw error;
       }
       await wait(attempt === 0 ? 350 : 900);
