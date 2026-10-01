@@ -40,6 +40,55 @@ const MIN_PROCESSING_TIME_MS = 800;
 const RESULT_REVEAL_BUTTON_CLASS =
   'inline-flex min-h-12 w-full sm:w-[25rem] items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm sm:text-[0.95rem] font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700';
 
+const splitInsightIntoParagraphs = (
+  text: string
+) => {
+  const normalized =
+    text.trim().replace(/\s+/g, ' ');
+
+  if (!normalized) {
+    return [];
+  }
+
+  const sentences =
+    normalized
+      .match(
+        /[^.!?]+[.!?]+(?:[»”"']+)?|[^.!?]+$/g
+      )
+      ?.map((sentence) =>
+        sentence.trim()
+      )
+      .filter(Boolean) || [
+      normalized,
+    ];
+
+  if (sentences.length <= 2) {
+    return [normalized];
+  }
+
+  const paragraphCount =
+    sentences.length >= 5 ? 3 : 2;
+
+  const chunkSize = Math.ceil(
+    sentences.length /
+      paragraphCount
+  );
+
+  return Array.from(
+    {
+      length: paragraphCount,
+    },
+    (_, index) =>
+      sentences
+        .slice(
+          index * chunkSize,
+          (index + 1) *
+            chunkSize
+        )
+        .join(' ')
+  ).filter(Boolean);
+};
+
 const ANSWER_OPTIONS = [
   {
     value: 1,
@@ -1350,9 +1399,30 @@ const AssessmentViewV1: React.FC = () => {
                 )}
               </h2>
 
-              <p className="text-slate-700 leading-relaxed max-w-4xl">
-                {result.insight}
-              </p>
+              <div className="max-w-5xl space-y-3">
+                {splitInsightIntoParagraphs(
+                  result.insight
+                ).map(
+                  (
+                    paragraph,
+                    index
+                  ) => (
+                    <p
+                      key={`${index}-${paragraph.slice(
+                        0,
+                        24
+                      )}`}
+                      className={`${
+                        index === 0
+                          ? 'text-[1.02rem] sm:text-[1.05rem] font-medium text-slate-800'
+                          : 'text-[0.95rem] sm:text-base text-slate-700'
+                      } leading-[1.75] text-justify [text-align-last:left]`}
+                    >
+                      {paragraph}
+                    </p>
+                  )
+                )}
+              </div>
 
               <div className="mt-5 flex justify-end">
                 <button
@@ -1506,7 +1576,7 @@ const AssessmentViewV1: React.FC = () => {
                       {action.title}
                     </h3>
 
-                    <p className="text-sm text-slate-600 leading-relaxed">
+                    <p className="text-sm text-slate-600 leading-relaxed text-justify [text-align-last:left]">
                       {action.body}
                     </p>
 
@@ -1518,7 +1588,7 @@ const AssessmentViewV1: React.FC = () => {
                         )}
                       </p>
 
-                      <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+                      <p className="mt-1.5 text-sm leading-relaxed text-slate-600 text-justify [text-align-last:left]">
                         {rationale}
                       </p>
                     </div>
