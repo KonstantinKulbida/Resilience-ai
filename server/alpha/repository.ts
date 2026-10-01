@@ -39,12 +39,13 @@ const resultFromRow = (row: any, participant: Participant, language: AlphaLangua
       : row.ai_action_rationales_en;
   const hasAiInsight =
     typeof aiInsight === 'string' && aiInsight.trim().length > 0;
-  const hasRationales =
+  const hasRationales = Boolean(
     rationaleMap &&
     typeof rationaleMap === 'object' &&
     typeof rationaleMap.today === 'string' &&
     typeof rationaleMap.week === 'string' &&
-    typeof rationaleMap.support === 'string';
+    typeof rationaleMap.support === 'string'
+  );
 
   const enrichedActions = {
     today: {
@@ -125,8 +126,8 @@ export const saveBaseline = async (participant: Participant, answers: Record<str
             ai_action_rationales_ru = ${sql.json(interpretations.rationalesRu)}
         WHERE id = ${Number(inserted[0].id)}
       `;
-    } catch {
-      console.error('Alpha Gemini interpretation fallback used');
+    } catch (error) {
+      console.error('Alpha Gemini interpretation fallback used', error);
     }
   }
 
