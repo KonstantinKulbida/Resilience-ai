@@ -10,7 +10,6 @@ import {
   ArrowDown,
   ArrowRight,
   CalendarDays,
-  CheckCircle,
   CheckCircle2,
   Eye,
   Lock,
@@ -1008,11 +1007,59 @@ const AssessmentViewV1: React.FC = () => {
     isPerfectProfile ||
     weakestStatus ===
       'green'
-      ? CheckCircle
+      ? ShieldCheck
       : weakestStatus ===
           'stable'
-        ? RefreshCw
-        : AlertTriangle;
+        ? Eye
+        : MessageCircle;
+
+  const thirdActionIconBoxClass =
+    isPerfectProfile ||
+    weakestStatus ===
+      'green'
+      ? 'bg-emerald-50 border-emerald-100'
+      : weakestStatus ===
+          'stable'
+        ? 'bg-sky-50 border-sky-100'
+        : 'bg-amber-50 border-amber-100';
+
+  const thirdActionIconClass =
+    isPerfectProfile ||
+    weakestStatus ===
+      'green'
+      ? 'text-emerald-700'
+      : weakestStatus ===
+          'stable'
+        ? 'text-sky-700'
+        : 'text-amber-700';
+
+  const fallbackActionRationale = (
+    slot: 'today' | 'week' | 'support'
+  ) => {
+    const factor =
+      factorLabel(
+        displayWeakestFactor
+      );
+
+    if (slot === 'today') {
+      return t(
+        `Use this as a small test on ${factor}. If it is the right lever, you should notice less time pressure, fewer competing demands, or a clearer next priority today.`,
+        `Используйте это как небольшой тест для зоны «${factor}». Если рычаг подходит, уже сегодня должно стать заметно меньше спешки, конкурирующих требований или неясности с ближайшим приоритетом.`
+      );
+    }
+
+    if (slot === 'week') {
+      return t(
+        'Watch the work pattern, not just how you feel: look for fewer switches, less unfinished work, fewer overruns, or a more predictable end to the day.',
+        'Смотрите не только на ощущение облегчения, но и на рабочий сигнал: стало ли меньше переключений, незавершённой работы, переработок или постоянной смены приоритетов.'
+      );
+    }
+
+    return t(
+      'If the pattern does not change after a personal experiment, that is useful evidence that the constraint may be structural and worth taking into a concrete conversation with your manager.',
+      'Если после личного эксперимента картина не меняется, это полезный сигнал, что ограничение может быть системным и его стоит вынести в конкретный разговор с руководителем.'
+    );
+  };
 
   return (
     <div
