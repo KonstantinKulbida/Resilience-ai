@@ -11,6 +11,8 @@ import EmployeeView from './components/EmployeeView';
 import HRView from './components/HRView';
 import LoginPage from './components/LoginPage';
 import LanguageToggle from './components/LanguageToggle';
+import AlphaView from './components/AlphaView';
+import AlphaManagerView from './components/AlphaManagerView';
 
 import { House } from 'lucide-react';
 
@@ -108,6 +110,9 @@ const App: React.FC = () => {
   const { t } =
     useLanguage();
 
+  const isAlphaManagerRoute =
+    pathname === '/alpha/manager' || pathname === '/alpha/manager/';
+  const isAlphaRoute = pathname === '/alpha' || pathname === '/alpha/';
   const route = parseRoute(pathname);
 
   useEffect(() => {
@@ -232,6 +237,14 @@ const App: React.FC = () => {
       }
     );
   };
+
+  if (isAlphaManagerRoute) {
+    return <AlphaManagerView />;
+  }
+
+  if (isAlphaRoute) {
+    return <AlphaView />;
+  }
 
   if (!route.isLoggedIn) {
     return (
