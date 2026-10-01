@@ -33,8 +33,33 @@ const resultFromRow = (row: any, participant: Participant, language: AlphaLangua
   const actions = selectAlphaRecommendations(weakestFactor, weakIds, participant.workContext, language);
   const aiInsight =
     language === 'ru' ? row.ai_insight_ru : row.ai_insight_en;
+  const rationaleMap =
+    language === 'ru'
+      ? row.ai_action_rationales_ru
+      : row.ai_action_rationales_en;
   const hasAiInsight =
     typeof aiInsight === 'string' && aiInsight.trim().length > 0;
+  const hasRationales =
+    rationaleMap &&
+    typeof rationaleMap === 'object' &&
+    typeof rationaleMap.today === 'string' &&
+    typeof rationaleMap.week === 'string' &&
+    typeof rationaleMap.support === 'string';
+
+  const enrichedActions = {
+    today: {
+      ...actions.today,
+      ...(hasRationales ? { rationale: rationaleMap.today } : {}),
+    },
+    week: {
+      ...actions.week,
+      ...(hasRationales ? { rationale: rationaleMap.week } : {}),
+    },
+    support: {
+      ...actions.support,
+      ...(hasRationales ? { rationale: rationaleMap.support } : {}),
+    },
+  };
 
   return {
     wave:'baseline', score:Number(row.overall_score), status: row.overall_status,
@@ -42,7 +67,8 @@ const resultFromRow = (row: any, participant: Participant, language: AlphaLangua
     selectedActionIds:[actions.today.id,actions.week.id,actions.support.id],
     submittedAt:new Date(row.submitted_at).toISOString(),
     insight: hasAiInsight ? aiInsight : insightFor(weakestFactor,language),
-    actions, aiEnhanced:hasAiInsight
+    actions: enrichedActions,
+    aiEnhanced:hasAiInsight || hasRationales
   };
 };
 
@@ -70,6 +96,8 @@ export const feedbackExists = async (participantId:number) => {
 export const saveBaseline = async (participant: Participant, answers: Record<string,number>, scores: DeterministicAssessmentScores, language: AlphaLanguage) => {
   const sql=getAlphaDb();
   const actions=selectAlphaRecommendations(scores.weakestFactor,scores.weakestQuestionIds,participant.workContext,language);
+  const actionsEn=selectAlphaRecommendations(scores.weakestFactor,scores.weakestQuestionIds,participant.workContext,'en');
+  const actionsRu=selectAlphaRecommendations(scores.weakestFactor,scores.weakestQuestionIds,participant.workContext,'ru');
   const ids=[actions.today.id,actions.week.id,actions.support.id];
 
   const inserted=await sql`
@@ -84,13 +112,17 @@ export const saveBaseline = async (participant: Participant, answers: Record<str
     try {
       const interpretations = await generateAlphaInterpretations(
         scores,
-        participant.workContext
+        participant.workContext,
+        actionsEn,
+        actionsRu
       );
 
       await sql`
         UPDATE alpha_assessments
-        SET ai_insight_en = ${interpretations.en},
-            ai_insight_ru = ${interpretations.ru}
+        SET ai_insight_en = ${interpretations.insightEn},
+            ai_insight_ru = ${interpretations.insightRu},
+            ai_action_rationales_en = ${sql.json(interpretations.rationalesEn)},
+            ai_action_rationales_ru = ${sql.json(interpretations.rationalesRu)}
         WHERE id = ${Number(inserted[0].id)}
       `;
     } catch {
