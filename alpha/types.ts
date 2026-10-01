@@ -1,7 +1,7 @@
 import type { SustainabilityFactor, SustainabilityStatus } from '../assessmentModel';
 
 export type AlphaLanguage = 'en' | 'ru';
-export type AlphaAction = { id: string; title: string; body: string };
+export type AlphaAction = { id: string; title: string; body: string; rationale?: string };
 export type AlphaResult = {
   wave: 'baseline';
   score: number;
