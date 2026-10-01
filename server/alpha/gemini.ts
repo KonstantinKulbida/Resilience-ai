@@ -73,7 +73,7 @@ export const generateAlphaInterpretations = async (
 
   const run = async () => {
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
+      model: 'gemini-3.8-flash',
       contents: `
 You are the interpretation layer of a non-clinical employee work-sustainability product.
 
