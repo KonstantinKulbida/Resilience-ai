@@ -52,6 +52,9 @@ type AssessmentPersonalizationSelection = {
   todayActionId: string;
   weekActionId: string;
   supportActionId: string;
+  todayRationale: string;
+  weekRationale: string;
+  supportRationale: string;
 };
 
 const isAssessmentPersonalizationSelection = (
@@ -69,7 +72,13 @@ const isAssessmentPersonalizationSelection = (
     typeof result.weekActionId === 'string' &&
     isAllowedActionId(scores.weakestFactor, 'week', result.weekActionId) &&
     typeof result.supportActionId === 'string' &&
-    isAllowedActionId(scores.weakestFactor, 'support', result.supportActionId)
+    isAllowedActionId(scores.weakestFactor, 'support', result.supportActionId) &&
+    typeof result.todayRationale === 'string' &&
+    result.todayRationale.trim().length > 0 &&
+    typeof result.weekRationale === 'string' &&
+    result.weekRationale.trim().length > 0 &&
+    typeof result.supportRationale === 'string' &&
+    result.supportRationale.trim().length > 0
   );
 };
 
@@ -122,12 +131,21 @@ Lowest-scoring statements inside that factor:
 ${questionSignals}
 
 Return:
-1. insight — maximum 2 short sentences explaining what matters most right now and why. Do not repeat all scores.
+1. insight — 4–6 concise sentences that feel genuinely personalized rather than generic.
+   - Ground the explanation in at least two concrete signals from the questionnaire, not just the factor name.
+   - Explain the likely work pattern connecting those signals and why it matters.
+   - If another factor is relatively stronger, use it as a practical resource or contrast.
+   - Distinguish observation from certainty: use language such as "this pattern may mean" rather than pretending to know facts not contained in the answers.
+   - Do not merely restate that workload is high, recovery is low, or control is low.
 2. todayActionId — choose exactly one ID from: ${todayIds}
 3. weekActionId — choose exactly one ID from: ${weekIds}
 4. supportActionId — choose exactly one ID from: ${supportIds}
+5. todayRationale — 1–2 concise sentences explaining why the selected today action fits this specific response pattern and what useful signal the employee can observe after trying it.
+6. weekRationale — 1–2 concise sentences explaining why the selected week action fits this specific response pattern and what it is intended to test or change.
+7. supportRationale — 1–2 concise sentences explaining when the selected support action becomes appropriate and what concrete work constraint it is meant to surface.
 
-Do not invent new action IDs. ${languageInstruction}
+The rationales must add context, not repeat the action title/body in different words.
+Do not invent new action IDs or new employee facts. ${languageInstruction}
     `,
     config: {
       thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
@@ -139,8 +157,19 @@ Do not invent new action IDs. ${languageInstruction}
           todayActionId: { type: Type.STRING },
           weekActionId: { type: Type.STRING },
           supportActionId: { type: Type.STRING },
+          todayRationale: { type: Type.STRING },
+          weekRationale: { type: Type.STRING },
+          supportRationale: { type: Type.STRING },
         },
-        required: ['insight', 'todayActionId', 'weekActionId', 'supportActionId'],
+        required: [
+          'insight',
+          'todayActionId',
+          'weekActionId',
+          'supportActionId',
+          'todayRationale',
+          'weekRationale',
+          'supportRationale'
+        ],
       },
     },
   });
