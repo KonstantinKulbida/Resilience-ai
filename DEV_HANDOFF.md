@@ -1,5 +1,27 @@
 # Resilience.ai Development Handoff
 
+## 2026-10-01 Alpha cloud state — canonical for `alpha-v0-cloud`
+
+- Working Alpha branch: `alpha-v0-cloud`; keep `main` untouched until explicit acceptance/merge.
+- Vercel preview alias: `https://resilience-ai-git-alpha-v0-cloud-montenyou-4106.vercel.app`.
+- Production demo on `main` remains separate.
+- Neon project `cold-field-19715020`, main branch `br-snowy-credit-b2daavmq`, database `neondb`.
+- Real Alpha hierarchy is now `Organization → Department → Participant → Assessment`.
+- Initial organization: `pilot-company-01` / `Pilot Company 01`.
+- Active real employee invite batch: 20 links total, 10 Development + 10 Sales.
+- Manager roles:
+  - `department_manager`: one department only, aggregate only.
+  - `org_admin`: all eligible department aggregates inside one organization.
+- Manager route: `/alpha/manager#<secret-token>`.
+- Privacy threshold is enforced server-side at n >= 5; suppressed departments do not reveal exact response counts.
+- No individual employee rows, raw answers, individual scores, participant IDs, or tokens are returned to manager views.
+- Employee Alpha uses deterministic server-side scoring. Gemini is only a constrained qualitative interpretation layer; it cannot change score/status or invent actions. Gemini has deterministic fallback.
+- Employee sandbox remains at `/employee/assessment`, requires no invite, and writes no Alpha data.
+- Employee sandbox no longer links to the People/HR dashboard after completion; People demo access remains on the start screen.
+- Release notes: `RELEASE_NOTES_ALPHA_2026-10-01.md`.
+- Latest live acceptance diagnostic passed employee baseline, Gemini interpretation, department-manager scope, org-admin scope, and n<5 suppression. Diagnostic endpoint and test rows were removed afterward.
+
+
 ## Repository and deployment
 
 - Local repository: `/Users/konstantin_me/Developer/Resilience-ai`
