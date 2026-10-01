@@ -1,5 +1,37 @@
 # Release notes
 
+## 2026-10-01 — Expanded Gemini guidance
+
+Employee result guidance was deepened after the original two-sentence interpretation proved too generic.
+
+### Richer interpretation
+
+- Pressure-mode Gemini insight is now 4–6 concise sentences instead of a maximum of two.
+- It must ground the interpretation in at least two concrete questionnaire signals.
+- It should explain the likely pattern connecting those signals rather than merely restating the weakest factor.
+- A relatively stronger factor can be used as a practical resource or contrast.
+- Numeric scores are not repeated in prose unless necessary because the user already sees them.
+- Work-context mechanisms such as incoming work, sprint commitments, meetings, or deadlines must be framed as hypotheses to test, not facts inferred from the assessment.
+
+### Richer actions
+
+- The three curated actions remain constrained by the product recommendation catalog.
+- Gemini now adds a short personalized rationale under each action:
+  - why this action fits the current response pattern;
+  - what useful signal to watch after trying it;
+  - what work constraint the action is intended to test or surface.
+- Gemini still cannot invent action IDs or replace the deterministic scoring model.
+
+### Reliability
+
+- Primary model: Gemini 3.8 Flash.
+- Transient capacity errors are retried.
+- If 3.8 Flash remains unavailable, the assessment falls back to Gemini 3.5 Flash before falling back to deterministic copy.
+- A live production diagnostic confirmed an AI-enhanced result with expanded insight and rationales for all three actions.
+- Temporary diagnostic endpoints were removed after verification.
+
+---
+
 ## 2026-10-01 — Buyer-focused landing page
 
 The public start page was refocused around the primary B2B audience: HR / People leaders, business leaders, buyers, pilot sponsors, and evaluators.
