@@ -2,110 +2,118 @@
 
 ## 2026-10-01 Alpha cloud state — canonical for `alpha-v0-cloud`
 
-- Working Alpha branch: `alpha-v0-cloud`; keep `main` untouched until explicit acceptance/merge.
-- Vercel preview alias: `https://resilience-ai-git-alpha-v0-cloud-montenyou-4106.vercel.app`.
-- Production demo on `main` remains separate.
-- Neon project `cold-field-19715020`, main branch `br-snowy-credit-b2daavmq`, database `neondb`.
-- Real Alpha hierarchy is now `Organization → Department → Participant → Assessment`.
+- Working Alpha branch: `alpha-v0-cloud`; do not merge Alpha implementation into `main` without a separate product decision.
+- Production demo: https://resilience-ai-eta.vercel.app
+- Alpha preview alias: https://resilience-ai-git-alpha-v0-cloud-montenyou-4106.vercel.app
+- GitHub: `KonstantinKulbida/Resilience-ai`
+- Neon project: `cold-field-19715020`; branch `br-snowy-credit-b2daavmq`; database `neondb`.
+- Real Alpha hierarchy: `Organization → Department / org_unit → Participant → Assessment`.
 - Initial organization: `pilot-company-01` / `Pilot Company 01`.
 - Active real employee invite batch: 20 links total, 10 Development + 10 Sales.
-- Manager roles:
-  - `department_manager`: one department only, aggregate only.
-  - `org_admin`: all eligible department aggregates inside one organization.
+- Employee route: `/alpha#<secret-token>`.
 - Manager route: `/alpha/manager#<secret-token>`.
-- Privacy threshold is enforced server-side at n >= 5 for scores and factor aggregates.
-- Manager view now exposes rollout progress before aggregate unlock: active links issued, valid links opened, completed baselines, and progress to n=5. Scores remain suppressed below n=5.
-- No individual employee rows, raw answers, individual scores, participant IDs, or tokens are returned to manager views.
-- Employee Alpha uses deterministic server-side scoring. Gemini is only a constrained qualitative interpretation layer; it cannot change score/status or invent actions. Gemini has deterministic fallback.
-- Employee AI guidance is now expanded: 4–6 sentence evidence-bound interpretation plus a Gemini rationale under each fixed curated action; Gemini 3.8 Flash retries and falls back to 3.5 Flash before deterministic copy.
-- Result UX cleanup: fixed-width/right-aligned reveal controls, Russian-only score terminology, stabilized factor cards, always-expanded recommendation rationale, and compact expandable privacy policy instead of a final privacy stage.
-- Employee sandbox remains at `/employee/assessment`, requires no invite, and writes no Alpha data.
-- Employee sandbox no longer links to the People/HR dashboard after completion; People demo access remains on the start screen.
-- Release notes: `RELEASE_NOTES_ALPHA_2026-10-01.md`.
-- Latest live acceptance diagnostic passed employee baseline, Gemini interpretation, department-manager scope, org-admin scope, and n<5 suppression. Diagnostic endpoint and test rows were removed afterward.
+- Manager roles:
+  - `department_manager`: aggregate data for one department only.
+  - `org_admin`: eligible department aggregates for the assigned company.
+- Privacy threshold is enforced server-side at n >= 5 completed baseline responses.
+- Below n=5 managers may see rollout counts (links issued, valid links opened, completed baselines, progress to threshold), but not scores, factors, identities, raw answers, participant IDs, or invite tokens.
+- Employee Alpha uses deterministic server-side scoring as source of truth. Gemini is a constrained qualitative layer and cannot change score/status or invent actions.
+- Gemini guidance is expanded to a 4–6 sentence evidence-bound interpretation plus rationale for each curated action; 3.8 Flash retries and falls back to 3.5 Flash, then deterministic copy.
+- Employee sandbox remains at `/employee/assessment`, requires no invite, supports retake, and writes no Alpha data.
+- People demo access is only from the start page; the employee result does not transition into the HR/People dashboard.
 
+## Current source state
 
-## Repository and deployment
+Latest UI source commits before this docs-only handoff refresh:
 
-- Local repository: `/Users/konstantin_me/Developer/Resilience-ai`
-- Current branch: `main`
-- GitHub: `KonstantinKulbida/Resilience-ai`
-- Production: https://resilience-ai-eta.vercel.app
-- Latest deployed commit: `71575d7` (`feat: polish core investor journey`)
-- Previous deployed logic fix: `3428dbe` (`fix: stabilize assessment guidance and demo flow`)
+- `main`: `2537d9649dd38bd742b0319f0e6cdb85121204b6` — `chore(result): publish final UI polish`
+- `alpha-v0-cloud`: `46bc346834787ebc044c07b4ce8f93840000f3fb` — `chore(result): publish final UI polish`
 
-GitHub `main` is the canonical deployed source. This file is the canonical development handoff between chats.
+The shared result component is synchronized between branches: `components/AssessmentViewV1.tsx` has the same blob SHA (`e58e52dac41ac87eb39e4e5b0c5c510fb45ab2bd`) on `main` and `alpha-v0-cloud`.
 
-## Current uncommitted fix
+The buyer landing component is also synchronized between branches: `components/LoginPage.tsx` has the same blob SHA (`e1edbf4b600b96474781207bd710979511f2d042`).
 
-- Fixed the production mobile assessment regression where moving between questionnaire steps left the viewport near the bottom of the card.
-- `scrollToSection` now uses the document viewport when mobile `<main>` expands with its content, while retaining the existing fixed-height `<main>` scroll behavior on desktop.
-- Back / Continue behavior, answers, missing-answer focus, result-stage scrolling, scoring, copy, layout, API behavior, and People screens are unchanged.
-- Validated at 390 px for steps 1 → 2 → 3 → 4 and Back 4 → 3, including answer persistence and missing-answer validation; desktop assessment and result scrolling were also verified.
-- This fix is not committed or pushed yet.
+## Result UI cleanup now present in source
 
-## Current shipped state
+- Result flow is four stages only:
+  1. overall result;
+  2. factors;
+  3. personalized insight;
+  4. recommendations.
+- There is no fifth privacy stage and no final reveal button used only to reach privacy.
+- All staged reveal controls use the same `RESULT_REVEAL_BUTTON_CLASS`: full-width on mobile, fixed width on `sm+`, same minimum height, padding, typography, indigo treatment, and down-arrow.
+- Reveal controls are placed in right-aligned rows on desktop.
+- Russian result copy no longer shows the visible English label “Work Sustainability”; the factor explainer uses “общий показатель устойчивости рабочего режима”.
+- Factor cards use equal-height flex layout, compact “Главный фактор” marking, nowrap status chips, and bottom-aligned descriptions.
+- Recommendation cards are equal-height and use distinct icons for Today / This week / support/protect/watch.
+- Every recommendation card always includes “Почему это подходит сейчас” / “Why this fits now”; if Gemini rationale is absent, deterministic contextual rationale is rendered.
+- Privacy is a compact inline block after recommendations with an expandable “Политика конфиденциальности” / “Privacy policy” disclosure.
+- The buyer landing page uses the compact desktop/mobile layout and buyer-first CTA hierarchy documented in `RELEASE_NOTES.md`.
 
-- The old sidebar has been replaced by one shared Employee/People shell. Its geometry, navigation, and behavior are accepted.
-- The assessment is four steps of three questions with semantic answer labels, answer-count progress, missing-answer validation, answer-preserving navigation, and a real-request-backed processing state.
-- The demo home, employee journey, Employee-to-People transition, and People dashboard use the accepted neutral enterprise glass treatment.
-- Preserve the current `App.tsx` structure and shell geometry unless a future task explicitly asks to revise them.
-- Local safety backups remain excluded through `.git/info/exclude` and are not part of the repository:
-  - `.resilience-codex-backup/App.before-codex.tsx`
-  - `.resilience-codex-backup/App.before-codex.patch`
-- Do not reset, stash, checkout, restore, commit, or push the current work without explicit approval.
+## Deployment status — objective blocker
 
-## Completed milestones
+The latest source commits are not live yet because Vercel rejected both head builds with the account-level status:
 
-- Work Sustainability assessment implemented with 12 questions and three weighted factors:
-  - Workload balance: 40%
-  - Recovery: 40%
-  - Control & clarity: 20%
-- Score bands implemented:
-  - 80–100: Green
-  - 65–79: Stable
-  - 45–64: Needs attention
-  - 0–44: At risk
-- Guidance modes implemented and validated: Perfect, Protect, Watch, and Pressure.
-- Healthy profiles are not framed as having a pressure problem.
-- Employee journey implemented: Result → Drivers → Personalized insight → Actions → Privacy → People demo.
-- People dashboard implemented: Team Sustainability → drivers → primary issue → intervention → owner → re-check → outcome.
-- Employee individual data remains private; the People experience uses aggregated synthetic demo data with a minimum of five responses.
-- Logic bug pass completed and production smoke-tested.
+`build-rate-limit`
 
-## Completed visual-polish release
+GitHub/Vercel status was checked directly for both latest UI commits and reports `failure` pointing to the Vercel build-rate-limit upgrade page.
 
-1. Removed the old sidebar and introduced one shared Employee/People shell.
-2. Changed the assessment presentation from 12 questions on one screen to four steps of three questions, with answer-count progress, per-question missing-answer feedback, and answer-preserving Back/Continue navigation.
-3. Replaced visible numeric 1–5 choices with bilingual semantic answer labels while preserving internal 1–5 scoring.
-4. Added a real-request-backed result-processing screen with an approximately 800 ms minimum display, lightweight factor indicators, and no fake numeric progress.
-5. Replaced the pastel/rainbow wellbeing aesthetic across the core investor journey with neutral enterprise glass, restrained solid-indigo actions and progress, consistent neutral People cards, and a premium neutral Employee-to-People transition.
-6. Validated the complete treatment on desktop and at 390 px across demo home, assessment, processing, employee result, transition, and People dashboard.
-7. Documented the release in `RELEASE_NOTES.md` and published it to `main` after validation.
+Latest READY deployments currently serving the aliases:
 
-## Validation protocol
+- Production `main`: `e528c3e98219d9d8196b2f9bc51287f8c2abf204` — `refactor(result): unify staged controls and result flow`
+- Alpha preview: `3c34b968bd42c73a62244e682f8171e50b68e655` — `refactor(result): unify staged controls and result flow`
 
-After each implementation task, run:
+Live bundle inspection confirms those aliases are still on the older result UI: the final UI marker `data-result-ui="2026-10-01-polish"` is absent, and the older standalone privacy-stage copy is still present.
 
-```bash
-npx tsc --noEmit
-npm run build
-git diff --check
-```
+The available Vercel deployment-write connector is currently unavailable server-side (`deploy_to_vercel not found`), so there is no authenticated manual redeploy path from this chat while the Git integration is rate-limited.
 
-Also summarize all changed files and the result of each validation command. For visual work, validate both desktop and a 390 px mobile viewport before release.
+## Runtime status of currently live deployments
+
+- Production and Alpha aliases return HTTP 200.
+- Production runtime logs for the last hour show successful 200 responses and no 5xx response group.
+- A Gemini 503/high-demand error was logged for assessment personalization; this is the transient condition covered by the implemented retry / 3.5 Flash / deterministic fallback chain.
+
+## Validation status
+
+Source-level verification completed against GitHub for the latest heads:
+
+- result-flow stages and reveal-button layout;
+- Russian terminology;
+- factor-card structure;
+- personalized-insight CTA alignment;
+- expanded recommendation cards and fallback rationale;
+- compact privacy disclosure;
+- synchronized shared UI files across `main` and `alpha-v0-cloud`;
+- compact buyer landing source on both branches.
+
+A fresh local `npm run build` / `npx tsc --noEmit` could not be executed from this chat runtime because the container has no network access to clone the GitHub repository. Do not record those checks as passed for the latest heads until they are actually run in an environment with repository access.
+
+Live visual acceptance of the final UI at desktop and ~390 px is still pending because the final source commits have not reached Vercel.
+
+## Release notes
+
+- Public/demo release notes: `RELEASE_NOTES.md`
+- Alpha release notes: `RELEASE_NOTES_ALPHA_2026-10-01.md`
+
+Both already document the 2026-10-01 result UI cleanup, richer recommendation rationale, privacy simplification, and landing-page compaction.
 
 ## Do not change
 
-- Do not overwrite or discard any existing uncommitted changes.
-- Do not alter the current `App.tsx` visual-polish work unless explicitly asked.
-- Do not modify assessment scoring, weighting, score bands, guidance-mode logic, or other model logic unless explicitly asked.
-- Do not weaken the rule that healthy profiles must never be described as having a pressure problem.
-- Do not expose employee-level private data; People views must remain aggregated synthetic demo data with a minimum of five responses.
-- Do not reset, stash, checkout, restore, commit, or push unless explicitly authorized.
-- Prefer minimal, targeted changes over rewrites.
-- Before implementation, inspect `git status`, inspect the relevant files, and explain the planned change.
+- Do not modify the locked assessment scoring model, weights, reverse items, status bands, or primary-factor rule without a separate product decision.
+- Do not let Gemini recalculate scores/statuses or invent action IDs.
+- Do not expose individual employee data in manager views.
+- Do not weaken the n >= 5 privacy threshold.
+- Do not merge Alpha implementation into `main` without a separate decision.
+- Prefer targeted changes over rewrites.
 
-## Next implementation step
+## Next step
 
-After the mobile assessment scroll fix is reviewed, commit, push, and production-smoke-test it only with explicit approval. Then create a dedicated corporate visual system and document it in `DESIGN_SYSTEM.md`. Treat that as a separate brand-system task: preserve the shipped shell geometry, questionnaire flow, result journey, assessment/model logic, API contracts, privacy rules, and People data unless that task explicitly expands scope.
+First re-check Vercel build availability. When a new build is accepted:
+
+1. deploy the current `main` and `alpha-v0-cloud` heads;
+2. confirm both deployments reach READY;
+3. verify production and Alpha live bundles contain `data-result-ui="2026-10-01-polish"`;
+4. run desktop and ~390 px visual acceptance for landing, result reveal buttons, factor cards, Russian copy, personalized insight, expanded recommendations, icons, and compact privacy disclosure;
+5. scan runtime/build errors and update this handoff only with verified live facts.
+
+No additional product/UI code change is currently identified from source inspection; the remaining blocker is deployment availability.
