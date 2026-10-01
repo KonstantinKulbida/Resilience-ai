@@ -2,7 +2,7 @@ import { getAlphaDb } from './db.js';
 import { hashSecretToken } from './tokens.js';
 import { ALPHA_VERSIONS } from './versions.js';
 import { selectAlphaRecommendations, insightFor } from './recommendations.js';
-import { generateAlphaInterpretation } from './gemini.js';
+import { generateAlphaInterpretations } from './gemini.js';
 import type { AlphaLanguage, AlphaResult } from '../../alpha/types.js';
 import type { DeterministicAssessmentScores } from '../assessmentScoring.js';
 
@@ -72,25 +72,20 @@ export const saveBaseline = async (participant: Participant, answers: Record<str
     ON CONFLICT (participant_id,wave) DO NOTHING RETURNING id`;
 
   if (inserted.length > 0) {
-    const [enResult, ruResult] = await Promise.allSettled([
-      generateAlphaInterpretation(scores, 'en', participant.workContext),
-      generateAlphaInterpretation(scores, 'ru', participant.workContext),
-    ]);
+    try {
+      const interpretations = await generateAlphaInterpretations(
+        scores,
+        participant.workContext
+      );
 
-    const insightEn = enResult.status === 'fulfilled' ? enResult.value : null;
-    const insightRu = ruResult.status === 'fulfilled' ? ruResult.value : null;
-
-    if (enResult.status === 'rejected' || ruResult.status === 'rejected') {
-      console.error('Alpha Gemini interpretation fallback used');
-    }
-
-    if (insightEn || insightRu) {
       await sql`
         UPDATE alpha_assessments
-        SET ai_insight_en = ${insightEn},
-            ai_insight_ru = ${insightRu}
+        SET ai_insight_en = ${interpretations.en},
+            ai_insight_ru = ${interpretations.ru}
         WHERE id = ${Number(inserted[0].id)}
       `;
+    } catch {
+      console.error('Alpha Gemini interpretation fallback used');
     }
   }
 
