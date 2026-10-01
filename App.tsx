@@ -107,7 +107,7 @@ const App: React.FC = () => {
   const mainRef =
     useRef<HTMLElement>(null);
 
-  const { t, setLanguage } =
+  const { t } =
     useLanguage();
 
   const isAlphaManagerRoute =
@@ -182,8 +182,6 @@ const App: React.FC = () => {
   const handleLogin = (
     selectedRole: UserRole
   ) => {
-    setLanguage('en');
-
     navigate(
       selectedRole === UserRole.HR
         ? '/hr/dashboard'
