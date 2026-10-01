@@ -1,4 +1,4 @@
-import type { AlphaLanguage, AlphaResult, AlphaSession } from '../alpha/types';
+import type { AlphaLanguage, AlphaManagerSession, AlphaResult, AlphaSession } from '../alpha/types';
 const post = async <T>(path: string, body: unknown): Promise<T> => {
   const response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', body: JSON.stringify(body) });
   const data = await response.json().catch(() => ({}));
@@ -10,3 +10,8 @@ export const submitAlphaAssessment = (token: string, answers: Record<string, num
   post<{ alreadySubmitted: boolean; result: AlphaResult }>('/api/alpha/assessment', { token, answers, language });
 export const submitAlphaFeedback = (token: string, usefulnessRating: number, usefulnessTag?: string) =>
   post<{ feedbackSubmitted: boolean }>('/api/alpha/feedback', { token, wave: 'baseline', usefulnessRating, usefulnessTag });
+
+export const getAlphaManagerSession = (
+  token: string,
+  language: AlphaLanguage
+) => post<AlphaManagerSession>('/api/alpha/manager/session', { token, language });
