@@ -1423,9 +1423,10 @@ const AssessmentViewV1: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid lg:grid-cols-3 gap-4 sm:gap-5 items-stretch">
             {[
               {
+                slot: 'today' as const,
                 label: t(
                   'Today',
                   'Сегодня'
@@ -1433,9 +1434,14 @@ const AssessmentViewV1: React.FC = () => {
                 action:
                   result.actions.today,
                 icon:
-                  CheckCircle,
+                  CheckCircle2,
+                iconBoxClass:
+                  'bg-indigo-50 border-indigo-100',
+                iconClass:
+                  'text-indigo-700',
               },
               {
+                slot: 'week' as const,
                 label: t(
                   'This week',
                   'На этой неделе'
@@ -1443,141 +1449,133 @@ const AssessmentViewV1: React.FC = () => {
                 action:
                   result.actions.week,
                 icon:
-                  RefreshCw,
+                  CalendarDays,
+                iconBoxClass:
+                  'bg-sky-50 border-sky-100',
+                iconClass:
+                  'text-sky-700',
               },
               {
+                slot: 'support' as const,
                 label:
                   thirdActionLabel,
                 action:
                   result.actions.support,
                 icon:
                   ThirdActionIcon,
+                iconBoxClass:
+                  thirdActionIconBoxClass,
+                iconClass:
+                  thirdActionIconClass,
               },
             ].map(
               ({
+                slot,
                 label,
                 action,
                 icon: Icon,
-              }) => (
-                <article
-                  key={label}
-                  className="bg-white/75 backdrop-blur-xl rounded-[2rem] p-5 sm:p-6 border border-slate-200/80 shadow-sm"
-                >
-                  <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center mb-4">
-                    <Icon className="w-4 h-4 text-slate-700" />
-                  </div>
+                iconBoxClass,
+                iconClass,
+              }) => {
+                const rationale =
+                  action.rationale ||
+                  fallbackActionRationale(
+                    slot
+                  );
 
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                    {label}
-                  </p>
+                return (
+                  <article
+                    key={slot}
+                    className="flex h-full flex-col bg-white/80 backdrop-blur-xl rounded-[2rem] p-5 sm:p-6 border border-slate-200/80 shadow-sm"
+                  >
+                    <div
+                      className={`mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border ${iconBoxClass}`}
+                    >
+                      <Icon
+                        className={`h-5 w-5 ${iconClass}`}
+                        strokeWidth={2.1}
+                      />
+                    </div>
 
-                  <h3 className="font-bold text-slate-900 mb-2">
-                    {action.title}
-                  </h3>
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400 mb-2">
+                      {label}
+                    </p>
 
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    {action.body}
-                  </p>
+                    <h3 className="text-base font-bold leading-snug text-slate-900 mb-2">
+                      {action.title}
+                    </h3>
 
-                  {action.rationale ? (
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      {action.body}
+                    </p>
+
                     <div className="mt-4 border-t border-slate-200/80 pt-4">
-                      <p className="text-[0.6875rem] font-bold uppercase tracking-wider text-indigo-500">
+                      <p className="text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-indigo-500">
                         {t(
                           'Why this fits now',
                           'Почему это подходит сейчас'
                         )}
                       </p>
+
                       <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
-                        {action.rationale}
+                        {rationale}
                       </p>
                     </div>
-                  ) : null}
-                </article>
-              )
+                  </article>
+                );
+              }
             )}
           </div>
 
-          <div className="mt-6 flex justify-end">
-            <button
-              type="button"
-              onClick={() =>
-                setResultStep(5)
-              }
-              className={RESULT_REVEAL_BUTTON_CLASS}
-            >
-              {t(
-                'Continue',
-                'Продолжить'
-              )}
+          <div className="mt-5 rounded-2xl border border-slate-200/80 bg-white/55 px-4 py-3.5">
+            <div className="flex items-start gap-3">
+              <Lock className="mt-0.5 h-4 w-4 flex-none text-slate-500" />
 
-              <ArrowDown className="w-4 h-4" />
-            </button>
-          </div>
-        </section>
-      )}
-
-      {resultStep >= 5 && (
-        <section
-          ref={finalRef}
-          className="space-y-6 sm:space-y-8"
-        >
-          <div className="bg-white/75 backdrop-blur-xl rounded-[2rem] p-5 sm:p-7 border border-slate-200/80 shadow-sm">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center flex-none">
-                <Lock className="w-5 h-5 text-slate-700" />
-              </div>
-
-              <div className="max-w-4xl">
-                <h2 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">
+              <div className="min-w-0 text-sm text-slate-500">
+                <p>
                   {t(
-                    'Your privacy',
-                    'Ваша конфиденциальность'
-                  )}
-                </h2>
-
-                <p className="font-semibold text-slate-800 mb-3">
-                  {t(
-                    'Your individual result is private to you.',
-                    'Ваш индивидуальный результат видите только вы.'
+                    'Your individual result is private. HR only sees aggregate team data after 5+ responses.',
+                    'Ваш индивидуальный результат видите только вы. HR получает только агрегированные данные после 5+ ответов.'
                   )}
                 </p>
 
-                <div className="space-y-2 text-sm text-slate-600 leading-relaxed">
-                  <p>
+                <details className="mt-1.5">
+                  <summary className="cursor-pointer list-none font-semibold text-indigo-600 hover:text-indigo-700">
                     {t(
-                      'In a company workspace, your answers and result are stored in your personal history so you can track changes over time.',
-                      'В рабочем пространстве компании ваши ответы и результат сохраняются в личной истории, чтобы вы могли отслеживать изменения со временем.'
+                      'Privacy policy',
+                      'Политика конфиденциальности'
                     )}
-                  </p>
+                  </summary>
 
-                  <p>
-                    {t(
-                      'HR does not see your individual answers or individual result.',
-                      'HR не видит ваши индивидуальные ответы или индивидуальный результат.'
-                    )}
-                  </p>
+                  <div className="mt-3 space-y-2 border-t border-slate-200/80 pt-3 text-sm leading-relaxed text-slate-600">
+                    <p>
+                      {t(
+                        'In a company workspace, individual answers and individual results are not shown to HR or managers.',
+                        'В рабочем пространстве компании индивидуальные ответы и персональные результаты не показываются HR или руководителям.'
+                      )}
+                    </p>
 
-                  <p>
-                    {t(
-                      'HR only receives aggregated team-level signals after at least 5 people have responded. If fewer than 5 people respond, no team result is shown.',
-                      'HR получает только агрегированные данные по команде после того, как ответили как минимум 5 человек. Если ответов меньше пяти, результат команды не отображается.'
-                    )}
-                  </p>
+                    <p>
+                      {t(
+                        'Team-level results are shown only after the privacy threshold of at least 5 completed responses is reached.',
+                        'Командные результаты отображаются только после достижения порога приватности — минимум 5 завершённых ответов.'
+                      )}
+                    </p>
 
-                  <p className="pt-2 text-xs text-slate-400">
-                    {t(
-                      'Prototype note: this public demo does not persist personal assessment history.',
-                      'Примечание для прототипа: публичная демо-версия не сохраняет персональную историю оценок.'
-                    )}
-                  </p>
-                </div>
+                    <p className="text-xs text-slate-400">
+                      {t(
+                        'Prototype note: the public sandbox does not persist personal assessment history.',
+                        'Примечание для прототипа: публичная песочница не сохраняет персональную историю оценок.'
+                      )}
+                    </p>
+                  </div>
+                </details>
               </div>
             </div>
           </div>
-
-
         </section>
       )}
+
     </div>
   );
 };
