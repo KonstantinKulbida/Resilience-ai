@@ -148,9 +148,11 @@ Return:
 1. insight — 4–6 concise sentences that feel genuinely personalized rather than generic.
    - Ground the explanation in at least two concrete signals from the questionnaire, not just the factor name.
    - Explain the likely work pattern connecting those signals and why it matters.
-   - If another factor is relatively stronger, use it as a practical resource or contrast.
+   - If another factor is relatively stronger, use it as a practical resource or contrast, but do not attribute it to personal skill or resilience unless the answers directly support that.
    - Distinguish observation from certainty: use language such as "this pattern may mean" rather than pretending to know facts not contained in the answers.
+   - Do not repeat numeric scores in the prose unless they are essential; the user already sees them.
    - Do not merely restate that workload is high, recovery is low, or control is low.
+   - If you mention a possible mechanism such as incoming work, sprint commitments, priorities, meetings, or deadlines, frame it explicitly as a hypothesis to test, not an observed fact.
 2. todayActionId — choose exactly one ID from: ${todayIds}
 3. weekActionId — choose exactly one ID from: ${weekIds}
 4. supportActionId — choose exactly one ID from: ${supportIds}
