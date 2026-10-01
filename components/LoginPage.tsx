@@ -23,8 +23,21 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       <div className="w-full max-w-6xl mx-auto">
         <header className="flex items-center justify-between gap-4 mb-4 sm:mb-5">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 rounded-2xl bg-indigo-600 shadow-md shadow-indigo-600/20 flex items-center justify-center flex-shrink-0">
-              <div className="w-4 h-4 border-2 border-white rounded-full" />
+            <div className="relative w-11 h-11 rounded-2xl bg-indigo-600 shadow-md shadow-indigo-600/20 flex-shrink-0">
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-white"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="7.25"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.25"
+                />
+              </svg>
             </div>
 
             <span className="text-lg sm:text-xl font-bold tracking-tight text-slate-800 truncate">
@@ -61,7 +74,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             >
               {t(
                 'See workforce strain before it becomes attrition or delivery risk.',
-                'Замечайте перегруз до того, как он влияет на людей и результат.'
+                'Замечайте, когда рабочая нагрузка становится чрезмерной, до того как это сказывается на сотрудниках и результатах.'
               )}
             </h1>
 
