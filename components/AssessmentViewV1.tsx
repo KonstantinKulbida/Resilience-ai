@@ -9,9 +9,14 @@ import {
   ArrowLeft,
   ArrowDown,
   ArrowRight,
+  CalendarDays,
   CheckCircle,
+  CheckCircle2,
+  Eye,
   Lock,
+  MessageCircle,
   RefreshCw,
+  ShieldCheck,
   Sparkles,
 } from 'lucide-react';
 import { analyzeAssessment } from '../services/geminiService';
@@ -34,7 +39,7 @@ const ASSESSMENT_STEPS = 4;
 const MIN_PROCESSING_TIME_MS = 800;
 
 const RESULT_REVEAL_BUTTON_CLASS =
-  'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700';
+  'inline-flex min-h-12 w-full sm:w-[25rem] items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm sm:text-[0.95rem] font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700';
 
 const ANSWER_OPTIONS = [
   {
@@ -144,7 +149,7 @@ const AssessmentViewV1: React.FC = () => {
   const [
     resultStep,
     setResultStep,
-  ] = useState<1 | 2 | 3 | 4 | 5>(1);
+  ] = useState<1 | 2 | 3 | 4>(1);
 
   const topRef =
     useRef<HTMLDivElement>(null);
@@ -164,9 +169,6 @@ const AssessmentViewV1: React.FC = () => {
     useRef<HTMLElement>(null);
 
   const actionsRef =
-    useRef<HTMLElement>(null);
-
-  const finalRef =
     useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -217,9 +219,7 @@ const AssessmentViewV1: React.FC = () => {
         ? driversRef.current
         : resultStep === 3
           ? insightRef.current
-          : resultStep === 4
-            ? actionsRef.current
-            : finalRef.current;
+          : actionsRef.current;
 
     let secondFrame = 0;
 
