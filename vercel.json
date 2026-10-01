@@ -2,6 +2,10 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/alpha/manager",
+      "destination": "/index.html"
+    },
+    {
       "source": "/alpha",
       "destination": "/index.html"
     },
