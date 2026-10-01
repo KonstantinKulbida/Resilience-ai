@@ -1,5 +1,35 @@
 # Release notes
 
+## 2026-10-01 — Result UI cleanup and privacy simplification
+
+A desktop/mobile polish pass was applied to the buyer landing page and employee result journey.
+
+### Landing page
+
+- Compacted desktop spacing and typography so the primary buyer value, CTAs, and summary cards fit the first viewport more reliably.
+- Reduced mobile headline size and vertical padding for cleaner narrow-screen composition.
+- Tightened the right-side “How the platform works” flow so it no longer forces excess height.
+
+### Result reveal flow
+
+- All staged reveal buttons now use the same width, height, padding, typography, arrow, and right-edge alignment.
+- Removed the extra final “Continue” step.
+- Replaced the large standalone privacy section with a compact privacy disclaimer plus an expandable text link: “Privacy policy” / “Политика конфиденциальности”.
+
+### Factor cards
+
+- Replaced the Russian mixed-language “Work Sustainability” label with “общий показатель устойчивости рабочего режима”.
+- Stabilized long Russian factor-card headers and badges.
+- Shortened the highlighted weak-factor marker to “Главный фактор”.
+
+### Recommendations
+
+- Action cards now use clearer, semantically distinct icons and stronger visual hierarchy.
+- Every action card always contains a “Why this fits now” explanation.
+- Gemini rationale is shown when available; a contextual deterministic explanation is used as a final fallback so recommendations never collapse back to one-line generic advice.
+
+---
+
 ## 2026-10-01 — Expanded Gemini guidance
 
 Employee result guidance was deepened after the original two-sentence interpretation proved too generic.
