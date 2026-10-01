@@ -41,7 +41,7 @@ export const generatePersonalizedAdvice = async (
       : 'Respond in natural, concise English.';
 
   const response = await ai.models.generateContent({
-    model: 'gemini-3.6-flash',
+    model: 'gemini-3.8-flash',
     contents: `
 Ты — эмпатичный помощник корпоративной wellbeing-программы.
 Сотрудник описывает свое состояние так: "${mood}" и оценивает свой уровень стресса как ${stressLevel} из 10.
@@ -123,7 +123,7 @@ export const generateAssessmentPersonalization = async (
   const supportIds = getAllowedActionIds(scores.weakestFactor, 'support').join(', ');
 
   const run = async () => ai.models.generateContent({
-    model: 'gemini-3.6-flash',
+    model: 'gemini-3.8-flash',
     contents: `
 You are the personalization layer of a non-clinical employee work-sustainability product.
 
