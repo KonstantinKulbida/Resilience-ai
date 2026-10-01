@@ -1064,6 +1064,7 @@ const AssessmentViewV1: React.FC = () => {
   return (
     <div
       ref={topRef}
+      data-result-ui="2026-10-01-polish"
       className="max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-24 animate-enter"
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
