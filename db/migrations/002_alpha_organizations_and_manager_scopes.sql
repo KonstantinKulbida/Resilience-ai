@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS alpha_organizations (
 );
 
 INSERT INTO alpha_organizations (slug, display_name, active)
-VALUES ('alpha-pilot-01', 'Alpha Pilot 01', TRUE)
+VALUES ('pilot-company-01', 'Pilot Company 01', TRUE)
 ON CONFLICT (slug) DO NOTHING;
 
 ALTER TABLE alpha_org_units
@@ -19,7 +19,7 @@ UPDATE alpha_org_units
 SET organization_id = (
   SELECT id
   FROM alpha_organizations
-  WHERE slug = 'alpha-pilot-01'
+  WHERE slug = 'pilot-company-01'
 )
 WHERE organization_id IS NULL;
 
@@ -71,7 +71,7 @@ UPDATE alpha_manager_access
 SET organization_id = (
   SELECT id
   FROM alpha_organizations
-  WHERE slug = 'alpha-pilot-01'
+  WHERE slug = 'pilot-company-01'
 )
 WHERE organization_id IS NULL;
 
