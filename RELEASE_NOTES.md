@@ -11,6 +11,7 @@ A desktop/mobile polish pass was applied to the buyer landing page and employee 
 - Tightened the right-side “How the platform works” flow so it no longer forces excess height.
 - Final result UI release marker: `data-result-ui="2026-10-01-polish"` on the result root, used for deployment verification.
 - The shared result UI source is synchronized with `alpha-v0-cloud`; Alpha-specific routes and APIs remain isolated to the Alpha branch.
+- The exact shared landing/result UI version was successfully built and verified in the Alpha Vercel preview before the production retry.
 
 ### Result reveal flow
 
