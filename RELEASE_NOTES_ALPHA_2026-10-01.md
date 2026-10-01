@@ -25,6 +25,17 @@ This release is the first real internal Alpha baseline flow on the isolated `alp
 - Existing Development and Sales participants were attached to this company without changing their invite links.
 - Future companies can have their own Development, Sales, or other departments without mixing aggregates.
 
+## Manager rollout progress
+
+Before department scores are available, manager views now show non-result operational progress so the pilot does not look stalled:
+
+- active invite links issued;
+- participants who opened a valid Alpha link;
+- completed baseline assessments;
+- progress toward the 5-response privacy threshold.
+
+These counts are aggregate operational metadata only. Individual identities, raw answers, individual scores, and invite tokens remain hidden. Department scores and factor aggregates still unlock only at n >= 5.
+
 ## Manager access and privacy
 
 Two manager roles are available through secret manager links:
