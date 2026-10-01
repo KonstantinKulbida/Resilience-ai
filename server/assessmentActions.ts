@@ -1,7 +1,8 @@
 import type { AppLanguage } from '../types.js';
-import type {
-  ResultAction,
-  SustainabilityFactor,
+import {
+  ASSESSMENT_QUESTIONS,
+  type ResultAction,
+  type SustainabilityFactor,
 } from '../assessmentModel.js';
 import type { DeterministicAssessmentScores } from './assessmentScoring.js';
 
@@ -632,85 +633,293 @@ export const getNonPressureActions = (
   );
 };
 
+const QUESTION_SIGNAL_COPY: Record<
+  number,
+  { en: string; ru: string }
+> = {
+  1: {
+    en: 'the workload does not consistently fit into the time available',
+    ru: 'текущий объём работы не всегда помещается в доступное время',
+  },
+  2: {
+    en: 'there is regularly more work than can reasonably be completed',
+    ru: 'работы регулярно оказывается больше, чем реально можно выполнить',
+  },
+  3: {
+    en: 'there is little spare capacity for unexpected work without other tasks slipping',
+    ru: 'почти нет запаса на неожиданную работу без сдвига остальных задач',
+  },
+  4: {
+    en: 'keeping up often requires rushing, working late, or giving up breaks',
+    ru: 'чтобы всё успеть, приходится спешить, задерживаться или жертвовать перерывами',
+  },
+  5: {
+    en: 'the workday often starts without enough energy for what is ahead',
+    ru: 'рабочий день нередко начинается без достаточного запаса энергии',
+  },
+  6: {
+    en: 'it is hard to mentally switch off from work after the day ends',
+    ru: 'после рабочего дня трудно мысленно отключиться от работы',
+  },
+  7: {
+    en: 'work-related tiredness carries over into the next day',
+    ru: 'усталость от работы переносится на следующий день',
+  },
+  8: {
+    en: 'rest or sleep does not always restore enough energy',
+    ru: 'отдых или сон не всегда возвращают достаточный запас энергии',
+  },
+  9: {
+    en: 'it is hard to identify what matters most when everything cannot be done',
+    ru: 'когда сделать всё невозможно, трудно определить главный приоритет',
+  },
+  10: {
+    en: 'there is limited ability to influence the order, timing, or scope of work',
+    ru: 'не хватает возможности влиять на порядок, сроки или объём работы',
+  },
+  11: {
+    en: 'it is hard to say that something will not fit without absorbing it anyway',
+    ru: 'сложно обозначить, что новая задача не помещается в текущие возможности, и не взять её на себя',
+  },
+  12: {
+    en: 'conflicting priorities are difficult to resolve independently',
+    ru: 'противоречащие друг другу приоритеты трудно разрешить самостоятельно',
+  },
+};
+
+const factorResourceCopy = (
+  factor: SustainabilityFactor,
+  language: AppLanguage
+): string => {
+  if (factor === 'workloadBalance') {
+    return language === 'ru'
+      ? 'баланс нагрузки сейчас выглядит устойчивее: у вас есть больше опоры в том, сколько работы реально помещается в доступное время'
+      : 'workload balance looks relatively stronger right now: there is more support in how much work can realistically fit into the time available';
+  }
+
+  if (factor === 'recovery') {
+    return language === 'ru'
+      ? 'восстановление сейчас выглядит устойчивее: это даёт некоторый запас, который можно использовать, пока вы меняете рабочий паттерн'
+      : 'recovery looks relatively stronger right now: that gives you some reserve while you change the work pattern';
+  }
+
+  return language === 'ru'
+    ? 'контроль и ясность сейчас выглядят устойчивее: это можно использовать как опору для более явных решений о приоритетах и границах'
+    : 'control & clarity looks relatively stronger right now: you can use that as support for making priorities and boundaries more explicit';
+};
+
+const strongestOtherFactor = (
+  scores: DeterministicAssessmentScores
+): SustainabilityFactor =>
+  (
+    [
+      'workloadBalance',
+      'recovery',
+      'controlClarity',
+    ] as SustainabilityFactor[]
+  )
+    .filter(
+      (factor) =>
+        factor !== scores.weakestFactor
+    )
+    .sort(
+      (a, b) =>
+        scores.factors[b].score -
+        scores.factors[a].score
+    )[0];
+
+const fallbackInsightIntro = (
+  factor: SustainabilityFactor,
+  mode: AssessmentGuidanceMode,
+  language: AppLanguage
+): string => {
+  const copy = {
+    workloadBalance: {
+      perfect: {
+        en: 'Workload balance is currently in a strong zone.',
+        ru: 'Баланс нагрузки сейчас находится в сильной зоне.',
+      },
+      protect: {
+        en: 'Workload balance remains strong, although it is the most sensitive part of the profile right now.',
+        ru: 'Баланс нагрузки остаётся в сильной зоне, хотя сейчас это наиболее чувствительная часть профиля.',
+      },
+      watch: {
+        en: 'Workload balance is still broadly stable, but some strain is beginning to appear.',
+        ru: 'Баланс нагрузки в целом остаётся устойчивым, но уже появляются признаки напряжения.',
+      },
+      pressure: {
+        en: 'Workload is the main pressure point right now.',
+        ru: 'Сейчас основная зона давления — рабочая нагрузка.',
+      },
+    },
+    recovery: {
+      perfect: {
+        en: 'Recovery is currently in a strong zone.',
+        ru: 'Восстановление сейчас находится в сильной зоне.',
+      },
+      protect: {
+        en: 'Recovery remains strong, although it is the most sensitive part of the profile right now.',
+        ru: 'Восстановление остаётся в сильной зоне, хотя сейчас это наиболее чувствительная часть профиля.',
+      },
+      watch: {
+        en: 'Recovery is still broadly stable, but some strain is beginning to appear.',
+        ru: 'Восстановление в целом остаётся устойчивым, но уже появляются признаки напряжения.',
+      },
+      pressure: {
+        en: 'Recovery is the main pressure point right now.',
+        ru: 'Сейчас основная зона давления — восстановление.',
+      },
+    },
+    controlClarity: {
+      perfect: {
+        en: 'Control and clarity are currently in a strong zone.',
+        ru: 'Контроль и ясность сейчас находятся в сильной зоне.',
+      },
+      protect: {
+        en: 'Control and clarity remain strong, although this is the most sensitive part of the profile right now.',
+        ru: 'Контроль и ясность остаются в сильной зоне, хотя сейчас это наиболее чувствительная часть профиля.',
+      },
+      watch: {
+        en: 'Control and clarity are still broadly stable, but some friction is beginning to appear.',
+        ru: 'Контроль и ясность в целом остаются устойчивыми, но уже появляется некоторое трение.',
+      },
+      pressure: {
+        en: 'Control and clarity are the main pressure point right now.',
+        ru: 'Сейчас основная зона давления — контроль и ясность в работе.',
+      },
+    },
+  } as const;
+
+  return copy[factor][mode][language];
+};
+
+const factorPatternCopy = (
+  factor: SustainabilityFactor,
+  language: AppLanguage
+): string => {
+  if (factor === 'workloadBalance') {
+    return language === 'ru'
+      ? 'Вместе это похоже на ситуацию, где текущий объём и непредсказуемость работы быстрее съедают доступный запас времени, чем его удаётся высвободить. Это рабочая гипотеза, которую стоит проверить, а не вывод о ваших личных способностях.'
+      : 'Together, this looks like a pattern where workload volume and unpredictability are consuming available capacity faster than it can be freed up. That is a working hypothesis to test, not a judgement about your personal capability.';
+  }
+
+  if (factor === 'recovery') {
+    return language === 'ru'
+      ? 'Вместе это похоже на ситуацию, где рабочая нагрузка заканчивается по времени, но не полностью заканчивается для восстановления: напряжение или усталость продолжают переходить в следующий период. Это рабочая гипотеза, которую стоит проверить, а не медицинский вывод.'
+      : 'Together, this looks like a pattern where work ends on the clock but does not fully end for recovery, so strain or tiredness continues into the next period. That is a working hypothesis to test, not a medical conclusion.';
+  }
+
+  return language === 'ru'
+    ? 'Вместе это похоже на ситуацию, где часть нагрузки создаётся не только объёмом задач, но и неопределённостью вокруг приоритетов, ответственности или границ решений. Это рабочая гипотеза, которую стоит проверить на конкретных рабочих ситуациях.'
+    : 'Together, this looks like a pattern where some of the strain comes not only from task volume but from uncertainty around priorities, ownership, or decision boundaries. That is a working hypothesis to test against concrete work situations.';
+};
+
+const factorNextStepCopy = (
+  factor: SustainabilityFactor,
+  mode: AssessmentGuidanceMode,
+  language: AppLanguage
+): string => {
+  const pressure = mode === 'pressure';
+
+  if (factor === 'workloadBalance') {
+    return language === 'ru'
+      ? pressure
+        ? 'Самый полезный первый эксперимент — убрать, перенести или сократить одно конкурирующее требование и посмотреть, становится ли день менее фрагментированным и предсказуемее по срокам.'
+        : 'Полезный следующий шаг — защитить один явный приоритет и посмотреть, не начинают ли новые запросы снова сокращать доступный запас времени.'
+      : pressure
+        ? 'The most useful first experiment is to remove, delay, or reduce one competing demand and see whether the day becomes less fragmented and more predictable.'
+        : 'A useful next step is to protect one explicit priority and watch whether new requests begin shrinking your available capacity again.';
+  }
+
+  if (factor === 'recovery') {
+    return language === 'ru'
+      ? pressure
+        ? 'Самый полезный первый эксперимент — создать один защищённый период восстановления и проверить, уменьшается ли перенос усталости на следующую часть дня или на следующее утро.'
+        : 'Полезный следующий шаг — сохранить одну работающую границу восстановления и следить, не начинают ли более загруженные дни постепенно её вытеснять.'
+      : pressure
+        ? 'The most useful first experiment is to create one protected recovery window and see whether less tiredness carries into the next part of the day or the next morning.'
+        : 'A useful next step is to preserve one recovery boundary that already works and watch whether busier days start squeezing it out.';
+  }
+
+  return language === 'ru'
+    ? pressure
+      ? 'Самый полезный первый эксперимент — прояснить одно конкретное решение о приоритете, ответственности или допустимом объёме работы и посмотреть, становится ли меньше переключений и зависших задач.'
+      : 'Полезный следующий шаг — удерживать один главный приоритет явным и быстро прояснять места, где начинают конфликтовать ожидания или границы решений.'
+    : pressure
+      ? 'The most useful first experiment is to clarify one concrete decision about priority, ownership, or acceptable scope and see whether there are fewer switches and stalled tasks.'
+      : 'A useful next step is to keep one main priority explicit and quickly clarify places where expectations or decision boundaries begin to conflict.';
+};
+
 export const buildFallbackInsight = (
   scores: DeterministicAssessmentScores,
   language: AppLanguage
 ): string => {
   const mode = getAssessmentGuidanceMode(scores);
+  const intro = fallbackInsightIntro(
+    scores.weakestFactor,
+    mode,
+    language
+  );
 
   if (mode === 'perfect') {
     return language === 'ru'
-      ? 'Все три фактора сейчас находятся в сильной зоне. Здесь не нужно искать проблему для исправления — полезнее сохранить условия, которые позволяют рабочему режиму оставаться устойчивым.'
-      : 'All three factors are currently strong. There is no problem to fix right now — the useful next step is to protect the conditions that are keeping your work sustainable.';
+      ? `${intro} Здесь не нужно искать проблему для исправления: важнее понять, какие рабочие условия сейчас поддерживают этот баланс. Обратите внимание, что именно помогает удерживать управляемую нагрузку, восстановление и ясность одновременно. Это полезно зафиксировать как рабочий паттерн, чтобы заметить ранние изменения, если условия начнут ухудшаться. На ближайшее время задача не усиливать режим, а сохранить те границы и привычки, которые уже работают.`
+      : `${intro} There is no problem to fix here: the more useful question is which working conditions are supporting this balance. Notice what is helping workload, recovery, and clarity stay strong at the same time. Treat that as a working pattern worth protecting so that early changes are easier to notice if conditions worsen. For now, the goal is not to push harder but to preserve the boundaries and habits that are already working.`;
   }
 
-  if (scores.weakestFactor === 'workloadBalance') {
-    if (language === 'ru') {
-      if (mode === 'protect') {
-        return 'Баланс нагрузки остаётся в сильной зоне, хотя сейчас это наиболее чувствительная часть профиля. Полезнее сохранить работающие границы и следить, чтобы новые требования постепенно не съедали текущий запас.';
-      }
+  const weakestSignals = scores.weakestQuestionIds
+    .map(
+      (id) =>
+        QUESTION_SIGNAL_COPY[id]?.[
+          language
+        ] ||
+        (
+          ASSESSMENT_QUESTIONS.find(
+            (question) =>
+              question.id === id
+          )?.[language] || ''
+        ).toLowerCase()
+    )
+    .filter(Boolean);
 
-      if (mode === 'watch') {
-        return 'Баланс нагрузки в целом остаётся устойчивым, но уже показывает некоторое напряжение. Сейчас полезно отследить, где начинает сокращаться запас времени и внимания, и скорректировать это до накопления давления.';
-      }
+  const signalSentence =
+    language === 'ru'
+      ? `В ваших ответах особенно заметны два сигнала: ${weakestSignals.join('; ')}.`
+      : `Two signals stand out in your responses: ${weakestSignals.join('; ')}.`;
 
-      return 'Сейчас основная зона давления — рабочая нагрузка. Самый полезный первый шаг — сократить конкурирующие требования, а не пытаться вместить в себя ещё больше.';
-    }
+  const patternSentence =
+    factorPatternCopy(
+      scores.weakestFactor,
+      language
+    );
 
-    if (mode === 'protect') {
-      return 'Workload balance remains in the green zone, although it is currently the most sensitive part of the profile. Protect the boundaries that are working and watch for new demands gradually reducing your available capacity.';
-    }
+  const strongestFactor =
+    strongestOtherFactor(scores);
 
-    if (mode === 'watch') {
-      return 'Workload balance is still broadly stable, but some strain is starting to appear. The useful next step is to notice where capacity is tightening and adjust before the pressure becomes persistent.';
-    }
+  const resourceSentence =
+    language === 'ru'
+      ? `При этом ${factorResourceCopy(
+          strongestFactor,
+          language
+        )}. Это можно использовать как опору, пока вы проверяете, какой именно рабочий рычаг даст заметный эффект.`
+      : `At the same time, ${factorResourceCopy(
+          strongestFactor,
+          language
+        )}. You can use that as support while testing which work lever produces a noticeable effect.`;
 
-    return 'Workload balance is the main pressure point right now. The most useful first step is to reduce competing demands rather than asking yourself to absorb more.';
-  }
+  const nextStepSentence =
+    factorNextStepCopy(
+      scores.weakestFactor,
+      mode,
+      language
+    );
 
-  if (scores.weakestFactor === 'recovery') {
-    if (language === 'ru') {
-      if (mode === 'protect') {
-        return 'Восстановление остаётся в сильной зоне, хотя сейчас это наиболее чувствительная часть профиля. Полезно сохранить работающие паузы и границы, чтобы более загруженные дни постепенно их не вытеснили.';
-      }
-
-      if (mode === 'watch') {
-        return 'Восстановление в целом остаётся устойчивым, но уже показывает некоторое напряжение. Полезно сделать паузы и границы более надёжными до того, как усталость начнёт переноситься изо дня в день.';
-      }
-
-      return 'Сейчас сильнее всего проседает восстановление. Первым шагом стоит создать реальное пространство между периодами нагрузки, а не просто добавлять ещё одну задачу в список заботы о себе.';
-    }
-
-    if (mode === 'protect') {
-      return 'Recovery remains in the green zone, although it is currently the most sensitive part of the profile. Protect the breaks and boundaries that are already working so busier days do not gradually squeeze them out.';
-    }
-
-    if (mode === 'watch') {
-      return 'Recovery is still broadly stable, but some strain is starting to appear. Making breaks and boundaries more reliable now can help prevent tiredness from carrying over day to day.';
-    }
-
-    return 'Recovery is the main pressure point right now. The first step is to create real space between periods of effort rather than adding another self-care task.';
-  }
-
-  if (language === 'ru') {
-    if (mode === 'protect') {
-      return 'Контроль и ясность остаются в сильной зоне, хотя сейчас это наиболее чувствительная часть профиля. Полезно сохранить ясные приоритеты и границы решений, пока они работают хорошо.';
-    }
-
-    if (mode === 'watch') {
-      return 'Контроль и ясность в целом остаются устойчивыми, но уже появляется некоторое трение. Сейчас полезно убрать одну конкретную неопределённость в приоритетах, ответственности или решениях.';
-    }
-
-    return 'Сейчас основная зона напряжения — контроль и ясность в работе. Полезнее всего сначала убрать неопределённость в приоритетах, ожиданиях и границах решений.';
-  }
-
-  if (mode === 'protect') {
-    return 'Control & clarity remains in the green zone, although it is currently the most sensitive part of the profile. Protect the clear priorities and decision boundaries that are already working well.';
-  }
-
-  if (mode === 'watch') {
-    return 'Control & clarity is still broadly stable, but some friction is starting to appear. Clarifying one specific uncertainty around priorities, ownership, or decisions can prevent that friction from growing.';
-  }
-
-  return 'Control & clarity is the main pressure point right now. The most useful first step is to reduce uncertainty around priorities, expectations, and decision boundaries.';
+  return [
+    intro,
+    signalSentence,
+    patternSentence,
+    resourceSentence,
+    nextStepSentence,
+  ].join(' ');
 };
+
