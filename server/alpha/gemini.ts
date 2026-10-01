@@ -2,6 +2,32 @@ import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 import { ASSESSMENT_QUESTIONS } from '../../assessmentModel.js';
 import type { DeterministicAssessmentScores } from '../assessmentScoring.js';
 
+type ActionCopy = {
+  title: string;
+  body: string;
+};
+
+type SelectedActions = {
+  today: ActionCopy;
+  week: ActionCopy;
+  support: ActionCopy;
+};
+
+export type AlphaGeminiInterpretation = {
+  insightEn: string;
+  insightRu: string;
+  rationalesEn: {
+    today: string;
+    week: string;
+    support: string;
+  };
+  rationalesRu: {
+    today: string;
+    week: string;
+    support: string;
+  };
+};
+
 const getClient = () => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -27,8 +53,10 @@ const isTransientGeminiError = (error: unknown) => {
 
 export const generateAlphaInterpretations = async (
   scores: DeterministicAssessmentScores,
-  workContext: string
-): Promise<{ en: string; ru: string }> => {
+  workContext: string,
+  actionsEn: SelectedActions,
+  actionsRu: SelectedActions
+): Promise<AlphaGeminiInterpretation> => {
   const ai = getClient();
 
   const weakestSignals = ASSESSMENT_QUESTIONS
@@ -61,21 +89,46 @@ Work context: ${workContext}
 Lowest-scoring statements inside the primary factor:
 ${weakestSignals || '- No additional item-level signal'}
 
-Return the same concise interpretation in two localized versions:
-- insightEn: natural English
-- insightRu: natural Russian
-Each version must be 2–3 short sentences.
+The product has already selected these fixed actions. You may explain them, but you must not replace, rewrite, or add actions.
+
+TODAY
+EN title: ${actionsEn.today.title}
+EN body: ${actionsEn.today.body}
+RU title: ${actionsRu.today.title}
+RU body: ${actionsRu.today.body}
+
+THIS WEEK
+EN title: ${actionsEn.week.title}
+EN body: ${actionsEn.week.body}
+RU title: ${actionsRu.week.title}
+RU body: ${actionsRu.week.body}
+
+SUPPORT
+EN title: ${actionsEn.support.title}
+EN body: ${actionsEn.support.body}
+RU title: ${actionsRu.support.title}
+RU body: ${actionsRu.support.body}
+
+Return:
+- insightEn and insightRu: equivalent localized interpretations, each 4–6 concise sentences.
+  * Ground the interpretation in at least two concrete questionnaire signals.
+  * Explain the likely work pattern connecting those signals and why it matters.
+  * Use a relatively stronger factor as a practical resource or contrast when useful.
+  * Avoid generic tautologies such as "your workload is high, so reduce workload".
+  * Distinguish observation from certainty: say "this pattern may suggest" rather than inventing facts.
+- todayRationaleEn / todayRationaleRu: 1–2 concise sentences explaining why the fixed TODAY action fits this specific pattern and what observable signal to watch after trying it.
+- weekRationaleEn / weekRationaleRu: 1–2 concise sentences explaining why the fixed THIS WEEK action fits and what it is intended to test or change.
+- supportRationaleEn / supportRationaleRu: 1–2 concise sentences explaining when the fixed SUPPORT action becomes appropriate and what concrete work constraint it is meant to surface.
 
 Rules:
-- Explain the pattern and its practical meaning at work.
 - Describe working conditions and current patterns, not personality.
 - Do not diagnose burnout, anxiety, depression, or any medical condition.
 - Do not recommend supplements, treatment, or clinical care.
 - Do not introduce new numbers or change existing scores/status.
-- Do not invent new actions; recommendations are selected separately by the product.
+- Do not invent employee facts.
+- Do not invent new actions.
 - Do not mention AI, Gemini, prompts, or internal scoring logic.
-- Avoid generic wellness language when the signal is workload, priorities, control, or role clarity.
-- Keep the tone calm, concrete, and non-alarmist.
+- Keep the tone calm, specific, practical, and non-alarmist.
       `,
       config: {
         thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
@@ -85,8 +138,23 @@ Rules:
           properties: {
             insightEn: { type: Type.STRING },
             insightRu: { type: Type.STRING },
+            todayRationaleEn: { type: Type.STRING },
+            todayRationaleRu: { type: Type.STRING },
+            weekRationaleEn: { type: Type.STRING },
+            weekRationaleRu: { type: Type.STRING },
+            supportRationaleEn: { type: Type.STRING },
+            supportRationaleRu: { type: Type.STRING },
           },
-          required: ['insightEn', 'insightRu'],
+          required: [
+            'insightEn',
+            'insightRu',
+            'todayRationaleEn',
+            'todayRationaleRu',
+            'weekRationaleEn',
+            'weekRationaleRu',
+            'supportRationaleEn',
+            'supportRationaleRu',
+          ],
         },
       },
     });
@@ -95,23 +163,37 @@ Rules:
       throw new Error('Gemini returned an empty Alpha interpretation');
     }
 
-    const parsed = JSON.parse(response.text) as {
-      insightEn?: unknown;
-      insightRu?: unknown;
-    };
+    const parsed = JSON.parse(response.text) as Record<string, unknown>;
+    const keys = [
+      'insightEn',
+      'insightRu',
+      'todayRationaleEn',
+      'todayRationaleRu',
+      'weekRationaleEn',
+      'weekRationaleRu',
+      'supportRationaleEn',
+      'supportRationaleRu',
+    ] as const;
 
-    if (
-      typeof parsed.insightEn !== 'string' ||
-      parsed.insightEn.trim().length === 0 ||
-      typeof parsed.insightRu !== 'string' ||
-      parsed.insightRu.trim().length === 0
-    ) {
-      throw new Error('Gemini returned an invalid Alpha interpretation');
+    for (const key of keys) {
+      if (typeof parsed[key] !== 'string' || String(parsed[key]).trim().length === 0) {
+        throw new Error('Gemini returned an invalid Alpha interpretation');
+      }
     }
 
     return {
-      en: parsed.insightEn.trim(),
-      ru: parsed.insightRu.trim(),
+      insightEn: String(parsed.insightEn).trim(),
+      insightRu: String(parsed.insightRu).trim(),
+      rationalesEn: {
+        today: String(parsed.todayRationaleEn).trim(),
+        week: String(parsed.weekRationaleEn).trim(),
+        support: String(parsed.supportRationaleEn).trim(),
+      },
+      rationalesRu: {
+        today: String(parsed.todayRationaleRu).trim(),
+        week: String(parsed.weekRationaleRu).trim(),
+        support: String(parsed.supportRationaleRu).trim(),
+      },
     };
   };
 
