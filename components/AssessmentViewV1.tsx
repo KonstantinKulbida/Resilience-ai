@@ -36,6 +36,7 @@ const FACTORS: SustainabilityFactor[] = [
 const QUESTIONS_PER_STEP = 3;
 const ASSESSMENT_STEPS = 4;
 const MIN_PROCESSING_TIME_MS = 800;
+const SLOW_PROCESSING_NOTICE_MS = 8000;
 
 const RESULT_REVEAL_BUTTON_CLASS =
   'inline-flex min-h-12 w-full sm:w-[25rem] items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm sm:text-[0.95rem] font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700';
@@ -191,6 +192,11 @@ const AssessmentViewV1: React.FC = () => {
   const [loading, setLoading] =
     useState(false);
 
+  const [
+    slowProcessing,
+    setSlowProcessing,
+  ] = useState(false);
+
   const [error, setError] =
     useState<string | null>(null);
 
@@ -222,6 +228,7 @@ const AssessmentViewV1: React.FC = () => {
   useEffect(() => {
     setResult(null);
     setError(null);
+    setSlowProcessing(false);
     setResultStep(1);
   }, [language]);
 
@@ -617,7 +624,13 @@ const AssessmentViewV1: React.FC = () => {
         window.performance.now();
 
       setLoading(true);
+      setSlowProcessing(false);
       setError(null);
+
+      const slowProcessingTimer =
+        window.setTimeout(() => {
+          setSlowProcessing(true);
+        }, SLOW_PROCESSING_NOTICE_MS);
 
       const nextResult =
         await analyzeAssessment(
@@ -627,6 +640,11 @@ const AssessmentViewV1: React.FC = () => {
           >,
           language
         );
+
+      window.clearTimeout(
+        slowProcessingTimer
+      );
+      setSlowProcessing(false);
 
       const remainingProcessingTime =
         Math.max(
@@ -648,6 +666,7 @@ const AssessmentViewV1: React.FC = () => {
       }
 
       if (!nextResult) {
+        setSlowProcessing(false);
         setLoading(false);
         setError(
           t(
@@ -661,6 +680,7 @@ const AssessmentViewV1: React.FC = () => {
 
       setResultStep(1);
       setResult(nextResult);
+      setSlowProcessing(false);
       setLoading(false);
     };
 
@@ -670,6 +690,7 @@ const AssessmentViewV1: React.FC = () => {
     setMissingQuestionIds([]);
     setResult(null);
     setError(null);
+    setSlowProcessing(false);
     setResultStep(1);
 
     window.requestAnimationFrame(
@@ -728,6 +749,15 @@ const AssessmentViewV1: React.FC = () => {
                 )
               )}
             </div>
+
+            {slowProcessing && (
+              <div className="mx-auto mt-5 max-w-2xl rounded-2xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm leading-relaxed text-amber-900">
+                {t(
+                  'This is taking a little longer than usual. Please wait a bit — your result will be ready soon.',
+                  'Расчёт занимает дольше обычного. Подождите немного — результат скоро будет готов.'
+                )}
+              </div>
+            )}
 
             <div className="mx-auto mt-7 flex w-fit items-center gap-2" aria-hidden="true">
               {[0, 1, 2].map(
