@@ -86,8 +86,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           </div>
         </header>
 
-        <main className="grid lg:grid-cols-[1.08fr_0.92fr] gap-4 sm:gap-5 lg:gap-6 items-start">
-          <section className="bg-white/75 backdrop-blur-2xl border border-slate-200/80 shadow-xl shadow-slate-900/5 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 lg:p-8 xl:p-9">
+        <main className="grid lg:grid-cols-[1.08fr_0.92fr] gap-4 sm:gap-5 lg:gap-6 items-stretch">
+          <section className="h-full bg-white/75 backdrop-blur-2xl border border-slate-200/80 shadow-xl shadow-slate-900/5 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 lg:p-8 xl:p-9">
             <div className="inline-flex self-start items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-50/90 border border-slate-200/80 text-xs font-semibold leading-snug text-slate-600 mb-4">
               <Eye className="w-4 h-4 text-teal-600 flex-shrink-0" />
               <span>
@@ -175,7 +175,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </p>
           </section>
 
-          <aside className="bg-white/65 backdrop-blur-2xl border border-slate-200/80 shadow-xl shadow-slate-900/5 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-5 lg:p-5">
+          <aside className="flex h-full flex-col bg-white/65 backdrop-blur-2xl border border-slate-200/80 shadow-xl shadow-slate-900/5 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-5 lg:p-5">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] font-bold text-indigo-600/80 mb-2">
                 {t('How the platform works', 'Как работает платформа')}
@@ -223,7 +223,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               })}
             </div>
 
-            <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-2.5 text-[0.8125rem] leading-snug text-slate-600">
+            <div className="mt-auto pt-3 grid sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-2.5 text-[0.8125rem] leading-snug text-slate-600">
               <div className="flex items-start gap-2.5 rounded-2xl bg-white/65 border border-slate-200/70 p-2.5">
                 <Clock3 className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                 <span>{t('12 questions · ~3 min', '12 вопросов · ~3 минуты')}</span>
