@@ -175,13 +175,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </p>
           </section>
 
-          <aside className="bg-white/65 backdrop-blur-2xl border border-slate-200/80 shadow-xl shadow-slate-900/5 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-6 lg:p-6">
+          <aside className="bg-white/65 backdrop-blur-2xl border border-slate-200/80 shadow-xl shadow-slate-900/5 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-5 lg:p-5">
             <div>
-              <p className="text-xs uppercase tracking-[0.18em] font-bold text-indigo-600/80 mb-3">
+              <p className="text-xs uppercase tracking-[0.18em] font-bold text-indigo-600/80 mb-2">
                 {t('How the platform works', 'Как работает платформа')}
               </p>
 
-              <h2 className="text-2xl lg:text-[1.55rem] font-bold tracking-tight leading-tight text-slate-900">
+              <h2 className="text-[1.35rem] lg:text-[1.45rem] font-bold tracking-tight leading-[1.2] text-slate-900">
                 {t(
                   'From private signal to a measurable management action.',
                   'От приватного сигнала — к управленческому действию.'
@@ -189,18 +189,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               </h2>
             </div>
 
-            <div className="mt-4 space-y-2.5">
+            <div className="mt-3 space-y-2">
               {steps.map((step, index) => {
                 const Icon = step.icon;
 
                 return (
                   <div
                     key={step.enTitle}
-                    className="rounded-2xl bg-white/75 border border-slate-200/70 p-3.5"
+                    className="rounded-2xl bg-white/75 border border-slate-200/70 p-3"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-center flex-shrink-0">
-                        <Icon className="w-4 h-4 text-indigo-600" />
+                    <div className="flex items-start gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-slate-50 border border-slate-200/70 flex items-center justify-center flex-shrink-0">
+                        <Icon className="w-3.5 h-3.5 text-indigo-600" />
                       </div>
 
                       <div className="min-w-0">
@@ -208,12 +208,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                           <span className="text-xs font-bold text-indigo-500">
                             {String(index + 1).padStart(2, '0')}
                           </span>
-                          <p className="font-semibold text-slate-900">
+                          <p className="text-[0.9375rem] font-semibold leading-snug text-slate-900">
                             {language === 'ru' ? step.ruTitle : step.enTitle}
                           </p>
                         </div>
 
-                        <p className="mt-1 text-[0.8125rem] leading-relaxed text-slate-600">
+                        <p className="mt-0.5 text-[0.775rem] leading-[1.45] text-slate-600">
                           {language === 'ru' ? step.ruBody : step.enBody}
                         </p>
                       </div>
@@ -223,13 +223,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               })}
             </div>
 
-            <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3 text-sm text-slate-600">
-              <div className="flex items-start gap-2.5 rounded-2xl bg-white/65 border border-slate-200/70 p-3">
+            <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-2.5 text-[0.8125rem] leading-snug text-slate-600">
+              <div className="flex items-start gap-2.5 rounded-2xl bg-white/65 border border-slate-200/70 p-2.5">
                 <Clock3 className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                 <span>{t('12 questions · ~3 min', '12 вопросов · ~3 минуты')}</span>
               </div>
 
-              <div className="flex items-start gap-2.5 rounded-2xl bg-white/65 border border-slate-200/70 p-3">
+              <div className="flex items-start gap-2.5 rounded-2xl bg-white/65 border border-slate-200/70 p-2.5">
                 <ShieldCheck className="w-4 h-4 text-indigo-600 flex-shrink-0 mt-0.5" />
                 <span>{t('Not a medical diagnosis', 'Не медицинская диагностика')}</span>
               </div>
