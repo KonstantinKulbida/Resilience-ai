@@ -1104,7 +1104,7 @@ const AssessmentViewV1: React.FC = () => {
           </div>
         </div>
 
-        <div className="relative mt-6 pt-5 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="relative mt-6 pt-5 border-t border-slate-200/80">
           <div className="flex items-start sm:items-center gap-2 text-xs sm:text-sm text-slate-500 max-w-2xl">
             <Lock className="w-4 h-4 flex-none mt-0.5 sm:mt-0" />
 
@@ -1116,20 +1116,22 @@ const AssessmentViewV1: React.FC = () => {
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={() =>
-              setResultStep(2)
-            }
-            className={`self-start sm:self-auto ${RESULT_REVEAL_BUTTON_CLASS}`}
-          >
-            {t(
-              'See what shapes your score',
-              'Посмотреть, из чего складывается результат'
-            )}
+          <div className="mt-4 flex justify-end">
+            <button
+              type="button"
+              onClick={() =>
+                setResultStep(2)
+              }
+              className={RESULT_REVEAL_BUTTON_CLASS}
+            >
+              {t(
+                'See what shapes your score',
+                'Посмотреть, из чего складывается результат'
+              )}
 
-            <ArrowDown className="w-4 h-4" />
-          </button>
+              <ArrowDown className="w-4 h-4 flex-none" />
+            </button>
+          </div>
         </div>
       </section>
 
@@ -1147,8 +1149,8 @@ const AssessmentViewV1: React.FC = () => {
 
             <p className="text-slate-500 mt-1">
               {t(
-                'These three factors make up your Work Sustainability score.',
-                'Из этих трёх факторов складывается ваш показатель Work Sustainability.'
+                'These three factors make up your work-sustainability score.',
+                'Из этих трёх факторов складывается общий показатель устойчивости рабочего режима.'
               )}
             </p>
           </div>
@@ -1296,7 +1298,7 @@ const AssessmentViewV1: React.FC = () => {
               <Sparkles className="w-5 h-5 text-indigo-600" />
             </div>
 
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="text-xs font-bold uppercase tracking-wider text-indigo-600 mb-1">
                 {t(
                   'Personalized insight',
