@@ -52,6 +52,15 @@ export const getBaseline = async (participant: Participant, language: AlphaLangu
   return rows[0] ? resultFromRow(rows[0],participant,language) : null;
 };
 
+export const markParticipantOpened = async (participantId: number) => {
+  const sql = getAlphaDb();
+  await sql`
+    UPDATE alpha_participants
+    SET first_opened_at = COALESCE(first_opened_at, NOW())
+    WHERE id = ${participantId}
+  `;
+};
+
 export const feedbackExists = async (participantId:number) => {
   const sql=getAlphaDb();
   const rows=await sql`SELECT EXISTS(SELECT 1 FROM alpha_feedback f JOIN alpha_assessments a ON a.id=f.assessment_id WHERE a.participant_id=${participantId} AND a.wave='baseline') AS exists`;
