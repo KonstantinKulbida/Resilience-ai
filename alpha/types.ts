@@ -13,7 +13,7 @@ export type AlphaResult = {
   submittedAt: string;
   insight: string;
   actions: { today: AlphaAction; week: AlphaAction; support: AlphaAction };
-  aiEnhanced: false;
+  aiEnhanced: boolean;
 };
 export type AlphaSession = {
   valid: boolean;
@@ -23,4 +23,30 @@ export type AlphaSession = {
   baselineSubmitted?: boolean;
   feedbackSubmitted?: boolean;
   result?: AlphaResult;
+};
+
+export type AlphaManagerRole = 'department_manager' | 'org_admin';
+export type AlphaManagerDepartment =
+  | {
+      slug: string;
+      displayName: string;
+      ready: false;
+    }
+  | {
+      slug: string;
+      displayName: string;
+      ready: true;
+      n: number;
+      overallScore: number;
+      status: SustainabilityStatus;
+      factors: Record<SustainabilityFactor, { score: number; status: SustainabilityStatus }>;
+      weakestFactor: SustainabilityFactor;
+    };
+
+export type AlphaManagerSession = {
+  valid: boolean;
+  role?: AlphaManagerRole;
+  organization?: { slug: string; displayName: string };
+  departmentScope?: { slug: string; displayName: string } | null;
+  departments?: AlphaManagerDepartment[];
 };
