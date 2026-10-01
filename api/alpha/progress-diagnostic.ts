@@ -147,7 +147,16 @@ export default async function handler(req: any, res: any) {
     };
 
     const ok = Object.values(checks).every(Boolean);
-    return res.status(ok ? 200 : 500).json({ ok, checks });
+    return res.status(ok ? 200 : 500).json({
+      ok,
+      checks,
+      debug: {
+        beforeStatus: before.statusCode,
+        beforeBody: before.body,
+        afterOpenStatus: afterOpen.statusCode,
+        afterOpenBody: afterOpen.body,
+      },
+    });
   } catch (error: any) {
     return res.status(500).json({
       ok: false,
