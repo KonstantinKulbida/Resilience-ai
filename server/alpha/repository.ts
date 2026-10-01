@@ -1,7 +1,7 @@
-import { getAlphaDb } from './db';
-import { hashSecretToken } from './tokens';
-import { ALPHA_VERSIONS } from './versions';
-import { selectAlphaRecommendations, insightFor } from './recommendations';
+import { getAlphaDb } from './db.js';
+import { hashSecretToken } from './tokens.js';
+import { ALPHA_VERSIONS } from './versions.js';
+import { selectAlphaRecommendations, insightFor } from './recommendations.js';
 import type { AlphaLanguage, AlphaResult } from '../../alpha/types';
 import type { DeterministicAssessmentScores } from '../assessmentScoring';
 
