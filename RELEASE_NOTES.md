@@ -366,3 +366,4 @@ HR data and outcomes in the public demo are synthetic and do not represent measu
 - `7c49126` — HR sustainability decision loop
 
 - 2026-10-01: retriggered production build after Vercel build-rate-limit window check.
+- 2026-10-01: expanded deterministic fallback insight and action rationales so degraded AI responses remain detailed and structured.
