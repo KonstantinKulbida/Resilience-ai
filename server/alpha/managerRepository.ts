@@ -83,15 +83,36 @@ export const getManagerDepartmentOverview = async (manager: AlphaManagerAccess) 
       ou.id,
       ou.slug,
       ou.display_name,
-      COUNT(a.id)::int AS response_count,
-      ROUND(AVG(a.overall_score))::int AS overall_score,
-      ROUND(AVG((a.factor_scores->'workloadBalance'->>'score')::numeric))::int AS workload_balance,
-      ROUND(AVG((a.factor_scores->'recovery'->>'score')::numeric))::int AS recovery,
-      ROUND(AVG((a.factor_scores->'controlClarity'->>'score')::numeric))::int AS control_clarity
+      COUNT(DISTINCT p.id) FILTER (WHERE p.active = TRUE)::int AS invite_count,
+      COUNT(DISTINCT p.id) FILTER (
+        WHERE p.active = TRUE
+          AND p.first_opened_at IS NOT NULL
+      )::int AS opened_count,
+      COUNT(DISTINCT a.id) FILTER (
+        WHERE p.active = TRUE
+          AND a.wave = 'baseline'
+      )::int AS response_count,
+      ROUND(AVG(a.overall_score)) FILTER (
+        WHERE p.active = TRUE
+          AND a.wave = 'baseline'
+      )::int AS overall_score,
+      ROUND(AVG((a.factor_scores->'workloadBalance'->>'score')::numeric)) FILTER (
+        WHERE p.active = TRUE
+          AND a.wave = 'baseline'
+      )::int AS workload_balance,
+      ROUND(AVG((a.factor_scores->'recovery'->>'score')::numeric)) FILTER (
+        WHERE p.active = TRUE
+          AND a.wave = 'baseline'
+      )::int AS recovery,
+      ROUND(AVG((a.factor_scores->'controlClarity'->>'score')::numeric)) FILTER (
+        WHERE p.active = TRUE
+          AND a.wave = 'baseline'
+      )::int AS control_clarity
     FROM alpha_org_units ou
+    LEFT JOIN alpha_participants p
+      ON p.org_unit_id = ou.id
     LEFT JOIN alpha_assessments a
-      ON a.org_unit_id = ou.id
-      AND a.wave = 'baseline'
+      ON a.participant_id = p.id
     WHERE ou.organization_id = ${manager.organizationId}
       AND ou.active = TRUE
       AND (${manager.role} = 'org_admin' OR ou.id = ${manager.orgUnitId})
@@ -100,12 +121,22 @@ export const getManagerDepartmentOverview = async (manager: AlphaManagerAccess) 
   `;
 
   return rows.map((row) => {
+    const inviteCount = Number(row.invite_count);
+    const openedCount = Number(row.opened_count);
     const responseCount = Number(row.response_count);
+    const progress = {
+      invitesIssued: inviteCount,
+      opened: openedCount,
+      completed: responseCount,
+      unlockAt: 5,
+    };
+
     if (responseCount < 5) {
       return {
         slug: String(row.slug),
         displayName: String(row.display_name),
         ready: false as const,
+        progress,
       };
     }
 
@@ -119,6 +150,7 @@ export const getManagerDepartmentOverview = async (manager: AlphaManagerAccess) 
       displayName: String(row.display_name),
       ready: true as const,
       n: responseCount,
+      progress,
       overallScore,
       status: statusFromScore(overallScore),
       factors: {
