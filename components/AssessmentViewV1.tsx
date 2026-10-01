@@ -1440,6 +1440,20 @@ const AssessmentViewV1: React.FC = () => {
                   <p className="text-sm text-slate-600 leading-relaxed">
                     {action.body}
                   </p>
+
+                  {action.rationale ? (
+                    <div className="mt-4 border-t border-slate-200/80 pt-4">
+                      <p className="text-[0.6875rem] font-bold uppercase tracking-wider text-indigo-500">
+                        {t(
+                          'Why this fits now',
+                          'Почему это подходит сейчас'
+                        )}
+                      </p>
+                      <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+                        {action.rationale}
+                      </p>
+                    </div>
+                  ) : null}
                 </article>
               )
             )}
