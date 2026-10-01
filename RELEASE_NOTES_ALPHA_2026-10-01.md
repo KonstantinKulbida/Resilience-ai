@@ -52,6 +52,15 @@ Privacy rules:
 
 Manager route: `/alpha/manager#<secret-manager-token>`.
 
+## Result UI cleanup
+
+- Sandbox/result staged buttons are now visually identical and aligned to the same right edge.
+- Russian result copy no longer exposes the English “Work Sustainability” term.
+- Factor cards were adjusted for long Russian labels and cleaner highlighted-factor treatment.
+- Recommendation cards now always include an explanation layer, using Gemini rationale when available and deterministic contextual rationale as fallback.
+- The large final privacy card was removed. Privacy remains visible as a compact disclaimer with an expandable “Политика конфиденциальности” disclosure.
+- The public buyer landing page was compacted for both desktop and narrow screens.
+
 ## Expanded employee guidance
 
 The real Alpha now uses the same richer interpretation pattern as the sandbox while preserving the safer Alpha architecture:
