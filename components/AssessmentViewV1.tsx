@@ -631,23 +631,6 @@ const AssessmentViewV1: React.FC = () => {
     );
   };
 
-  const goToPeopleDemo =
-    () => {
-      window.history.pushState(
-        {
-          resilience: true,
-        },
-        '',
-        '/hr/dashboard'
-      );
-
-      window.dispatchEvent(
-        new PopStateEvent(
-          'popstate'
-        )
-      );
-    };
-
   if (loading) {
     return (
       <div
@@ -1535,54 +1518,7 @@ const AssessmentViewV1: React.FC = () => {
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-[2rem] border border-indigo-200/80 bg-white/80 p-5 shadow-xl shadow-slate-900/5 backdrop-blur-xl sm:p-7">
-            <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-              <div className="max-w-3xl">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-600 mb-2">
-                  {t(
-                    'Continue the demo',
-                    'Продолжить демо'
-                  )}
-                </p>
 
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
-                  {t(
-                    'Now see the People side.',
-                    'Теперь посмотрите на продукт со стороны People-команды.'
-                  )}
-                </h2>
-
-                <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-                  {t(
-                    'You’ve completed the employee experience. Now see how the same model is presented from the People side, using privacy-safe aggregated synthetic team data and an organisational action loop.',
-                    'Вы прошли путь сотрудника. Теперь посмотрите, как та же модель представлена со стороны People-команды — через приватные агрегированные синтетические данные команды и цикл организационных действий.'
-                  )}
-                </p>
-
-                <p className="mt-3 text-xs text-slate-500">
-                  {t(
-                    'Demo transition only • Employees do not have access to the People dashboard.',
-                    'Только переход внутри демо • Сотрудники не имеют доступа к People dashboard.'
-                  )}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={
-                  goToPeopleDemo
-                }
-                className="group inline-flex min-h-12 flex-shrink-0 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700"
-              >
-                {t(
-                  'View the aggregated People demo',
-                  'Посмотреть агрегированное People-демо'
-                )}
-
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </button>
-            </div>
-          </div>
         </section>
       )}
     </div>
