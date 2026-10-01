@@ -52,9 +52,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   ];
 
   return (
-    <div className="min-h-screen font-sans text-slate-900 px-3 py-4 sm:px-4 lg:px-6 lg:py-5">
+    <div className="min-h-screen font-sans text-slate-900 px-3 py-3 sm:px-4 sm:py-4 lg:px-6 lg:py-4">
       <div className="w-full max-w-6xl mx-auto">
-        <header className="flex items-center justify-between gap-4 mb-5 sm:mb-6">
+        <header className="flex items-center justify-between gap-4 mb-4 sm:mb-5 lg:mb-4">
           <div className="flex items-center gap-3 min-w-0">
             <div className="relative w-11 h-11 rounded-2xl bg-indigo-600 shadow-md shadow-indigo-600/20 flex-shrink-0">
               <svg
@@ -87,8 +87,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         </header>
 
         <main className="grid lg:grid-cols-[1.08fr_0.92fr] gap-4 sm:gap-5 lg:gap-6 items-start">
-          <section className="bg-white/75 backdrop-blur-2xl border border-slate-200/80 shadow-xl shadow-slate-900/5 rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 lg:p-10">
-            <div className="inline-flex self-start items-center gap-2 px-3.5 py-2 rounded-full bg-slate-50/90 border border-slate-200/80 text-xs font-semibold text-slate-600 mb-5">
+          <section className="bg-white/75 backdrop-blur-2xl border border-slate-200/80 shadow-xl shadow-slate-900/5 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 lg:p-8 xl:p-9">
+            <div className="inline-flex self-start items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-50/90 border border-slate-200/80 text-xs font-semibold leading-snug text-slate-600 mb-4">
               <Eye className="w-4 h-4 text-teal-600 flex-shrink-0" />
               <span>
                 {t(
@@ -101,8 +101,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             <h1
               className={
                 language === 'ru'
-                  ? 'text-[2.35rem] sm:text-[2.75rem] lg:text-[3rem] xl:text-[3.15rem] leading-[1.04] font-bold tracking-[-0.035em] text-slate-900 max-w-3xl'
-                  : 'text-4xl sm:text-5xl lg:text-[3rem] xl:text-[3.15rem] leading-[1.02] font-bold tracking-[-0.035em] text-slate-900 max-w-3xl'
+                  ? 'text-[2rem] sm:text-[2.45rem] lg:text-[2.65rem] xl:text-[2.85rem] leading-[1.06] font-bold tracking-[-0.035em] text-slate-900 max-w-3xl'
+                  : 'text-[2.1rem] sm:text-[2.6rem] lg:text-[2.75rem] xl:text-[2.95rem] leading-[1.04] font-bold tracking-[-0.035em] text-slate-900 max-w-3xl'
               }
             >
               {t(
@@ -111,18 +111,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               )}
             </h1>
 
-            <p className="mt-5 text-base lg:text-[1.05rem] text-slate-600 leading-relaxed max-w-2xl">
+            <p className="mt-4 text-[0.98rem] sm:text-base text-slate-600 leading-relaxed max-w-2xl">
               {t(
                 'Resilience turns private 3-minute employee check-ins into privacy-safe team analytics: what is under pressure, what may be driving it, what intervention to try, and what changed after the re-check.',
                 'Resilience превращает приватные трёхминутные оценки сотрудников в безопасную командную аналитику: где давление выше, что его создаёт, какое изменение попробовать и что изменилось после повторной оценки.'
               )}
             </p>
 
-            <div className="mt-7 flex flex-col sm:flex-row gap-3 sm:items-center">
+            <div className="mt-5 flex flex-col sm:flex-row gap-3 sm:items-center">
               <button
                 type="button"
                 onClick={() => onLogin(UserRole.HR)}
-                className="group inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-4 text-white font-semibold shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-700 hover:-translate-y-0.5 hover:shadow-xl whitespace-nowrap"
+                className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-white font-semibold shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-700 hover:-translate-y-0.5 hover:shadow-xl whitespace-nowrap"
               >
                 {t('View People analytics', 'Посмотреть People-аналитику')}
                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1 flex-shrink-0" />
@@ -131,43 +131,43 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               <button
                 type="button"
                 onClick={() => onLogin(UserRole.EMPLOYEE)}
-                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-white/75 border border-slate-200/80 px-6 py-4 text-slate-700 font-semibold shadow-sm transition-all hover:bg-white hover:-translate-y-0.5 whitespace-nowrap"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-white/75 border border-slate-200/80 px-5 py-3 text-slate-700 font-semibold shadow-sm transition-all hover:bg-white hover:-translate-y-0.5 whitespace-nowrap"
               >
                 <CheckCircle2 className="w-4 h-4 text-indigo-600 flex-shrink-0" />
                 {t('Try the employee check-in', 'Пройти тест как сотрудник')}
               </button>
             </div>
 
-            <div className="mt-7 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-4">
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-3.5">
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
                   {t('Signal', 'Сигнал')}
                 </p>
-                <p className="mt-2 text-sm font-semibold text-slate-800">
+                <p className="mt-1.5 text-sm font-semibold leading-snug text-slate-800">
                   {t('Workload · Recovery · Control', 'Нагрузка · Восстановление · Контроль')}
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-4">
+              <div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-3.5">
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
                   {t('Privacy', 'Приватность')}
                 </p>
-                <p className="mt-2 text-sm font-semibold text-slate-800">
+                <p className="mt-1.5 text-sm font-semibold leading-snug text-slate-800">
                   {t('Aggregates only after 5+ responses', 'Агрегаты только после 5+ ответов')}
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-4">
+              <div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-3.5">
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
                   {t('Loop', 'Цикл')}
                 </p>
-                <p className="mt-2 text-sm font-semibold text-slate-800">
+                <p className="mt-1.5 text-sm font-semibold leading-snug text-slate-800">
                   {t('Action → re-check → delta', 'Действие → повторная оценка → изменение')}
                 </p>
               </div>
             </div>
 
-            <p className="mt-5 text-xs sm:text-sm text-slate-500">
+            <p className="mt-4 text-xs sm:text-sm text-slate-500">
               {t(
                 'Demo environment • People-view company data is synthetic.',
                 'Демо-среда • Данные компании в People-view синтетические.'
@@ -175,13 +175,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </p>
           </section>
 
-          <aside className="bg-white/65 backdrop-blur-2xl border border-slate-200/80 shadow-xl shadow-slate-900/5 rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-7 lg:p-8">
+          <aside className="bg-white/65 backdrop-blur-2xl border border-slate-200/80 shadow-xl shadow-slate-900/5 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-6 lg:p-6">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] font-bold text-indigo-600/80 mb-3">
                 {t('How the platform works', 'Как работает платформа')}
               </p>
 
-              <h2 className="text-2xl lg:text-[1.7rem] font-bold tracking-tight text-slate-900">
+              <h2 className="text-2xl lg:text-[1.55rem] font-bold tracking-tight leading-tight text-slate-900">
                 {t(
                   'From private signal to a measurable management action.',
                   'От приватного сигнала — к управленческому действию.'
@@ -189,17 +189,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               </h2>
             </div>
 
-            <div className="mt-6 space-y-3">
+            <div className="mt-4 space-y-2.5">
               {steps.map((step, index) => {
                 const Icon = step.icon;
 
                 return (
                   <div
                     key={step.enTitle}
-                    className="rounded-2xl bg-white/75 border border-slate-200/70 p-4"
+                    className="rounded-2xl bg-white/75 border border-slate-200/70 p-3.5"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-center flex-shrink-0">
                         <Icon className="w-4 h-4 text-indigo-600" />
                       </div>
 
@@ -213,7 +213,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                           </p>
                         </div>
 
-                        <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                        <p className="mt-1 text-[0.8125rem] leading-relaxed text-slate-600">
                           {language === 'ru' ? step.ruBody : step.enBody}
                         </p>
                       </div>
