@@ -18,6 +18,7 @@
 - No individual employee rows, raw answers, individual scores, participant IDs, or tokens are returned to manager views.
 - Employee Alpha uses deterministic server-side scoring. Gemini is only a constrained qualitative interpretation layer; it cannot change score/status or invent actions. Gemini has deterministic fallback.
 - Employee AI guidance is now expanded: 4–6 sentence evidence-bound interpretation plus a Gemini rationale under each fixed curated action; Gemini 3.8 Flash retries and falls back to 3.5 Flash before deterministic copy.
+- Result UX cleanup: fixed-width/right-aligned reveal controls, Russian-only score terminology, stabilized factor cards, always-expanded recommendation rationale, and compact expandable privacy policy instead of a final privacy stage.
 - Employee sandbox remains at `/employee/assessment`, requires no invite, and writes no Alpha data.
 - Employee sandbox no longer links to the People/HR dashboard after completion; People demo access remains on the start screen.
 - Release notes: `RELEASE_NOTES_ALPHA_2026-10-01.md`.
