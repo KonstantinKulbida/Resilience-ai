@@ -1,5 +1,34 @@
 # Release notes
 
+## 2026-10-01 — Buyer-focused landing page
+
+The public start page was refocused around the primary B2B audience: HR / People leaders, business leaders, buyers, pilot sponsors, and evaluators.
+
+### Value proposition
+
+- The hero now explains the product in buyer terms rather than presenting Employee and People modes as equal destinations.
+- New framing: understand where teams are losing resilience, what is creating pressure, what intervention to try, and what changed after a re-check.
+- Employee privacy and aggregate-only People analytics remain explicit.
+
+### Primary and secondary journeys
+
+- Primary CTA: `View People analytics` / `Посмотреть People-аналитику`.
+- Secondary CTA: `Try the employee check-in` / `Пройти тест как сотрудник`.
+- The employee sandbox remains available as a product demo, but it is no longer the dominant story on the landing page.
+
+### How-it-works flow
+
+The previous two-mode explainer was replaced with a compact operating loop:
+
+1. private employee check-in;
+2. department-level aggregate after the privacy threshold;
+3. one primary issue and one management intervention;
+4. re-check after 10–14 days to observe the descriptive change.
+
+The right-hand card now follows content height instead of stretching to match the hero, removing the large empty area.
+
+---
+
 ## 2026-10-01 — Demo sandbox separation and locale detection
 
 This follow-up corrects two demo behaviors without changing assessment scoring, recommendation logic, or People data.
