@@ -52,6 +52,20 @@ Privacy rules:
 
 Manager route: `/alpha/manager#<secret-manager-token>`.
 
+## Expanded employee guidance
+
+The real Alpha now uses the same richer interpretation pattern as the sandbox while preserving the safer Alpha architecture:
+
+- deterministic server-side scoring remains authoritative;
+- deterministic curated actions remain authoritative;
+- Gemini produces a 4–6 sentence evidence-bound interpretation;
+- Gemini adds a personalized rationale to each already-selected action;
+- bilingual EN/RU insight and action rationales are persisted with the assessment;
+- Gemini 3.8 Flash is primary with retry and Gemini 3.5 Flash fallback;
+- deterministic copy remains the final fallback if Gemini is unavailable.
+
+A live Alpha diagnostic confirmed persisted AI-enhanced guidance and was removed afterward.
+
 ## Gemini interpretation
 
 - Deterministic scoring remains authoritative and unchanged.
