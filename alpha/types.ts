@@ -26,17 +26,26 @@ export type AlphaSession = {
 };
 
 export type AlphaManagerRole = 'department_manager' | 'org_admin';
+export type AlphaManagerProgress = {
+  invitesIssued: number;
+  opened: number;
+  completed: number;
+  unlockAt: number;
+};
+
 export type AlphaManagerDepartment =
   | {
       slug: string;
       displayName: string;
       ready: false;
+      progress: AlphaManagerProgress;
     }
   | {
       slug: string;
       displayName: string;
       ready: true;
       n: number;
+      progress: AlphaManagerProgress;
       overallScore: number;
       status: SustainabilityStatus;
       factors: Record<SustainabilityFactor, { score: number; status: SustainabilityStatus }>;
