@@ -74,7 +74,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             >
               {t(
                 'See workforce strain before it becomes attrition or delivery risk.',
-                'Замечайте, когда рабочая нагрузка становится чрезмерной, до того как это сказывается на сотрудниках и результатах.'
+                'Замечайте чрезмерную нагрузку до того, как она сказывается на сотрудниках и результатах.'
               )}
             </h1>
 
