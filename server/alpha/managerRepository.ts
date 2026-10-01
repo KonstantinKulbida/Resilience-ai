@@ -92,21 +92,29 @@ export const getManagerDepartmentOverview = async (manager: AlphaManagerAccess) 
         WHERE p.active = TRUE
           AND a.wave = 'baseline'
       )::int AS response_count,
-      ROUND(AVG(a.overall_score)) FILTER (
-        WHERE p.active = TRUE
-          AND a.wave = 'baseline'
+      ROUND(
+        AVG(a.overall_score) FILTER (
+          WHERE p.active = TRUE
+            AND a.wave = 'baseline'
+        )
       )::int AS overall_score,
-      ROUND(AVG((a.factor_scores->'workloadBalance'->>'score')::numeric)) FILTER (
-        WHERE p.active = TRUE
-          AND a.wave = 'baseline'
+      ROUND(
+        AVG((a.factor_scores->'workloadBalance'->>'score')::numeric) FILTER (
+          WHERE p.active = TRUE
+            AND a.wave = 'baseline'
+        )
       )::int AS workload_balance,
-      ROUND(AVG((a.factor_scores->'recovery'->>'score')::numeric)) FILTER (
-        WHERE p.active = TRUE
-          AND a.wave = 'baseline'
+      ROUND(
+        AVG((a.factor_scores->'recovery'->>'score')::numeric) FILTER (
+          WHERE p.active = TRUE
+            AND a.wave = 'baseline'
+        )
       )::int AS recovery,
-      ROUND(AVG((a.factor_scores->'controlClarity'->>'score')::numeric)) FILTER (
-        WHERE p.active = TRUE
-          AND a.wave = 'baseline'
+      ROUND(
+        AVG((a.factor_scores->'controlClarity'->>'score')::numeric) FILTER (
+          WHERE p.active = TRUE
+            AND a.wave = 'baseline'
+        )
       )::int AS control_clarity
     FROM alpha_org_units ou
     LEFT JOIN alpha_participants p
