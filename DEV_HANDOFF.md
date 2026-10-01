@@ -13,7 +13,8 @@
   - `department_manager`: one department only, aggregate only.
   - `org_admin`: all eligible department aggregates inside one organization.
 - Manager route: `/alpha/manager#<secret-token>`.
-- Privacy threshold is enforced server-side at n >= 5; suppressed departments do not reveal exact response counts.
+- Privacy threshold is enforced server-side at n >= 5 for scores and factor aggregates.
+- Manager view now exposes rollout progress before aggregate unlock: active links issued, valid links opened, completed baselines, and progress to n=5. Scores remain suppressed below n=5.
 - No individual employee rows, raw answers, individual scores, participant IDs, or tokens are returned to manager views.
 - Employee Alpha uses deterministic server-side scoring. Gemini is only a constrained qualitative interpretation layer; it cannot change score/status or invent actions. Gemini has deterministic fallback.
 - Employee sandbox remains at `/employee/assessment`, requires no invite, and writes no Alpha data.
