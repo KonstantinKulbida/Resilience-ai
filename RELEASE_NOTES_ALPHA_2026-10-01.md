@@ -66,7 +66,7 @@ Manager route: `/alpha/manager#<secret-manager-token>`.
 - Preview branch: `alpha-v0-cloud`.
 - Vercel preview is public for external Alpha participants.
 - Neon is the persistent Alpha database.
-- Production `main` has not been merged or changed by this release.
+- The Alpha implementation remains isolated from `main` and has not been merged. Separately, `main` received the requested sandbox/i18n corrections: no employee-to-People post-assessment link, bilingual home, and browser/OS locale detection.
 
 ## Acceptance checks completed
 
