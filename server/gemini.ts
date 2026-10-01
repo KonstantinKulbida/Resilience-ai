@@ -122,8 +122,8 @@ export const generateAssessmentPersonalization = async (
   const weekIds = getAllowedActionIds(scores.weakestFactor, 'week').join(', ');
   const supportIds = getAllowedActionIds(scores.weakestFactor, 'support').join(', ');
 
-  const run = async () => ai.models.generateContent({
-    model: 'gemini-3.8-flash',
+  const run = async (model: string) => ai.models.generateContent({
+    model,
     contents: `
 You are the personalization layer of a non-clinical employee work-sustainability product.
 
@@ -189,10 +189,11 @@ Do not invent new action IDs or new employee facts. ${languageInstruction}
   });
 
   let lastError: unknown;
+  const modelSequence = ['gemini-3.8-flash', 'gemini-3.8-flash', 'gemini-3.5-flash'];
 
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  for (let attempt = 0; attempt < modelSequence.length; attempt += 1) {
     try {
-      const response = await run();
+      const response = await run(modelSequence[attempt]);
 
       if (!response.text) {
         throw new Error('Gemini returned an empty assessment personalization response');
@@ -207,7 +208,7 @@ Do not invent new action IDs or new employee facts. ${languageInstruction}
     } catch (error) {
       lastError = error;
 
-      if (!isTransientGeminiError(error) || attempt === 2) {
+      if (!isTransientGeminiError(error) || attempt === modelSequence.length - 1) {
         throw error;
       }
 
