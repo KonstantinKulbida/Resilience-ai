@@ -11,44 +11,23 @@ import {
 
 const postJson = async <T>(
   url: string,
-  body: unknown,
-  timeoutMs?: number
+  body: unknown
 ): Promise<T> => {
-  const controller =
-    typeof AbortController !== 'undefined'
-      ? new AbortController()
-      : null;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
 
-  const timeoutId =
-    timeoutMs && controller
-      ? globalThis.setTimeout(
-          () => controller.abort(),
-          timeoutMs
-        )
-      : undefined;
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-      signal: controller?.signal,
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `AI request failed with status ${response.status}`
-      );
-    }
-
-    return response.json() as Promise<T>;
-  } finally {
-    if (timeoutId !== undefined) {
-      globalThis.clearTimeout(timeoutId);
-    }
+  if (!response.ok) {
+    throw new Error(
+      `AI request failed with status ${response.status}`
+    );
   }
+
+  return response.json() as Promise<T>;
 };
 
 export const getPersonalizedAdvice = async (
@@ -154,8 +133,7 @@ export const analyzeAssessment = async (
         {
           answers,
           language,
-        },
-        8000
+        }
       );
 
     const localScores =
