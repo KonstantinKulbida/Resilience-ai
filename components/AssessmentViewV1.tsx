@@ -33,6 +33,9 @@ const QUESTIONS_PER_STEP = 3;
 const ASSESSMENT_STEPS = 4;
 const MIN_PROCESSING_TIME_MS = 800;
 
+const RESULT_REVEAL_BUTTON_CLASS =
+  'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700';
+
 const ANSWER_OPTIONS = [
   {
     value: 1,
@@ -1118,7 +1121,7 @@ const AssessmentViewV1: React.FC = () => {
             onClick={() =>
               setResultStep(2)
             }
-            className="self-start sm:self-auto inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700"
+            className={`self-start sm:self-auto ${RESULT_REVEAL_BUTTON_CLASS}`}
           >
             {t(
               'See what shapes your score',
@@ -1270,14 +1273,14 @@ const AssessmentViewV1: React.FC = () => {
               onClick={() =>
                 setResultStep(3)
               }
-              className="inline-flex items-center gap-2 rounded-xl bg-white/80 px-4 py-2.5 text-sm font-bold text-slate-700 border border-slate-200/80 shadow-sm transition hover:bg-white hover:text-slate-950"
+              className={RESULT_REVEAL_BUTTON_CLASS}
             >
               {t(
                 'What matters most right now',
                 'Что сейчас важнее всего'
               )}
 
-              <ArrowRight className="w-4 h-4" />
+              <ArrowDown className="w-4 h-4" />
             </button>
           </div>
         </section>
@@ -1317,7 +1320,7 @@ const AssessmentViewV1: React.FC = () => {
                 onClick={() =>
                   setResultStep(4)
                 }
-                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700"
+                className={`mt-5 ${RESULT_REVEAL_BUTTON_CLASS}`}
               >
                 {t(
                   'See what you can do',
@@ -1446,7 +1449,7 @@ const AssessmentViewV1: React.FC = () => {
               onClick={() =>
                 setResultStep(5)
               }
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700"
+              className={RESULT_REVEAL_BUTTON_CLASS}
             >
               {t(
                 'Continue',
