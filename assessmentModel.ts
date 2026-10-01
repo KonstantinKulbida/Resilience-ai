@@ -26,6 +26,7 @@ export interface ResultAction {
   id: string;
   title: string;
   body: string;
+  rationale?: string;
 }
 
 export interface WorkSustainabilityResult {
