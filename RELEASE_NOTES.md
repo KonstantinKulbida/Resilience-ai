@@ -1,5 +1,39 @@
 # Release notes
 
+## 2026-10-02 — Result reliability, richer fallback guidance, and shell cleanup
+
+This release improves the employee-result experience when Gemini is slow or unavailable and cleans up shared product-shell details.
+
+### Result generation and slow-response handling
+
+- Removed the client-side 8-second abort that previously forced the public demo into a short deterministic fallback even when the server was still generating the full personalized result.
+- The assessment now keeps waiting for the primary server-side result.
+- After 8 seconds, the processing screen shows a bilingual message explaining that the calculation is taking longer than usual and that the result is still being prepared.
+- The deterministic scoring model, factor weights, status bands, and weakest-factor selection remain unchanged.
+
+### Rich deterministic fallback
+
+- The deterministic insight is now substantially longer and structured around:
+  - two concrete weak-response signals;
+  - a working hypothesis about the pattern behind them;
+  - a relatively stronger factor that can be used as a resource;
+  - one concrete first experiment to test.
+- The fallback no longer collapses to a one-line generic recommendation when AI enrichment is unavailable.
+- Recommendation rationales for the `Today`, `This week`, and `Get support` actions were expanded so each action explains both why it fits the current pattern and what signal to watch.
+- Long insight and recommendation text continues to render as readable paragraphs with justified alignment.
+
+### Shared shell cleanup
+
+- Removed the `AI / АИ` avatar from Employee and People headers.
+- Unified the Resilience brand mark so the same circular detail is used across shared product-shell routes.
+
+### Deployment
+
+- Production `main` is deployed and READY on Vercel.
+- Alpha `alpha-v0-cloud` is deployed and READY on Vercel.
+- Live bundles were checked for the expanded fallback copy, expanded action rationales, slow-processing notice, and updated shared shell.
+
+---
 ## 2026-10-01 — Result UI cleanup and privacy simplification
 
 A desktop/mobile polish pass was applied to the buyer landing page and employee result journey.
