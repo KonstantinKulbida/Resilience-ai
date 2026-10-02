@@ -361,3 +361,4 @@ HR data and outcomes in the public demo are synthetic and do not represent measu
 
 - `79a1822` — Work Sustainability assessment model
 - `7c49126` — HR sustainability decision loop
+- 2026-10-02: retrigger Alpha build after Vercel build-rate-limit.
