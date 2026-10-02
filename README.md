@@ -6,103 +6,165 @@
 
 **Release notes:** [RELEASE_NOTES.md](RELEASE_NOTES.md)
 
-Resilience.ai is a portfolio-grade product prototype that demonstrates how employee work-sustainability signals can be turned into a working employee and HR decision loop without waiting for a full engineering team.
+Resilience.ai turns a short private employee assessment into two connected outputs:
 
-The project is intentionally scoped as a **prototype, not a production SaaS**. It focuses on the product flows, AI architecture, assessment logic, HR analytics and privacy decisions that are most useful for validating the concept and discussing it in product interviews.
+**Employee:** a clear explanation of the current work-sustainability pattern and practical next steps.
 
-> **Portfolio note:** HR/team data shown in the demo is synthetic. The employee assessment is a custom non-clinical Work Sustainability check and is not a medical diagnostic tool.
+**People / management:** privacy-safe team signals that help identify the primary pressure point, choose an intervention, and re-check what changed.
 
-## Live product flows
+The repository contains two deliberately separated product surfaces:
 
-### Employee experience
-- Mood / stress check-in
-- AI-generated personalized recommendation
-- 12-question Work Sustainability assessment
-- Three factors: **Workload balance, Recovery, Control & clarity**
-- Deterministic 0–100 scoring with fixed **40 / 40 / 20** weights
-- AI-generated interpretation and personalized next steps
-- 12-week resilience program
-- Insights, notes and stress first-aid content
+- **main** — public portfolio / buyer demo. The People data is synthetic.
+- **alpha-v0-cloud** — real Alpha flow with anonymous invite tokens, Neon Postgres persistence, department scoping, manager access, and privacy-threshold enforcement.
 
-### HR experience
-- Privacy-safe aggregated **Team Sustainability** view
-- Workload balance / Recovery / Control & clarity drivers
-- Participation and minimum 5-response privacy threshold
-- Deterministic primary issue
-- Recommended intervention, owner and 7–14 day re-check
-- Before / after outcome
-- Department-level synthetic demo scenarios
+> **Product note:** the assessment is a custom, non-clinical Work Sustainability check. It is not a medical diagnostic tool.
 
-## Screenshots
+## Current product flows
 
-### AI check-in
+### Employee demo
 
-![AI-powered employee check-in](docs/screenshots/ai-checkin.png)
+The core public path is:
 
-### Structured assessment result
+**12-question assessment → result → three factors → personalized insight → three actions → privacy**
 
-![Work Sustainability assessment with deterministic scoring and AI recommendations](docs/screenshots/assessment-results.png)
+- Four assessment steps, three questions each.
+- Three factors: **Workload balance, Recovery, Control & clarity**.
+- Deterministic 0–100 scoring with fixed **40 / 40 / 20** weights.
+- Progressive result reveal instead of a single dense dashboard.
+- Pressure-mode personalization grounded in the employee's actual response pattern.
+- Three practical action slots: **Today, This week, Get support**.
+- A slow-response state explains when personalization is taking longer than usual instead of forcing an early short fallback.
+- If generative AI remains unavailable, the product returns a richer deterministic insight and action guidance rather than failing the assessment.
 
-### HR decision loop
+### People demo
 
-![Team Sustainability decision loop](docs/screenshots/hr-decision-loop.png)
+The public People view demonstrates the management decision loop with synthetic team data:
+
+**Team Sustainability → 3 drivers → primary issue → intervention → owner → re-check → outcome**
+
+It includes:
+
+- privacy-safe aggregate Team Sustainability;
+- Workload balance / Recovery / Control & clarity drivers;
+- participation and a minimum 5-response privacy threshold;
+- deterministic primary issue;
+- recommended intervention and owner;
+- 10–14 day re-check framing;
+- before / after descriptive outcome.
+
+Synthetic outcomes illustrate the product loop only. They are not evidence of causal impact.
+
+### Real Alpha
+
+The Alpha branch is intentionally isolated from the public demo.
+
+Employee route:
+
+~~~text
+/alpha#<secret-token>
+~~~
+
+Manager route:
+
+~~~text
+/alpha/manager#<secret-token>
+~~~
+
+Current Alpha behavior:
+
+- one anonymous participant per secret token;
+- department is embedded in the invite and cannot be selected by the employee;
+- one baseline assessment per participant;
+- saved result can be reopened with the same token;
+- feedback persists;
+- Neon stores token hashes rather than plaintext invite tokens;
+- department managers see only their department;
+- org admins see eligible aggregates across their company;
+- individual identities, raw answers, individual scores, participant IDs, and invite tokens are never shown to managers;
+- aggregate factor scores unlock only after **5+ completed baseline responses** in that department;
+- before the threshold, managers see only rollout counts: issued → opened → completed.
+
+The real Alpha re-check loop is the next product stage; the public People demo already illustrates what that loop is intended to become.
+
+## UI
+
+The interface is under active product iteration. The live demo is the current visual source of truth:
+
+**https://resilience-ai-eta.vercel.app**
+
+The older pastel / “marshmallow” screenshots were removed from this README so the repository does not present an obsolete version of the product.
 
 ## AI design
 
-The prototype deliberately separates **deterministic product logic** from **generative AI**.
+The core assessment deliberately separates **deterministic product logic** from **generative personalization**.
 
-```mermaid
+~~~mermaid
 flowchart LR
-    A[React frontend] --> B[Vercel serverless API]
-    B --> C{Request type}
-    C -->|Check-in| D[Gemini 3.6 Flash]
-    C -->|Assessment| E[Deterministic scoring]
-    E --> F[Workload balance / Recovery / Control & clarity]
-    F --> D
-    D --> G[Validated structured output]
-    G --> A
-```
+    A[React / Vite frontend] --> B[Vercel /api/assessment]
+    B --> C[Validate 12 answers]
+    C --> D[Deterministic scoring]
+    D --> E{Guidance mode}
+
+    E -->|Perfect / Protect / Watch| F[Deterministic insight + curated actions]
+    E -->|Pressure| G[Gemini 3.8 Flash]
+
+    G -->|Transient retry / model fallback| H[Gemini 3.5 Flash]
+    G --> I[Validate structured output + allowed action IDs]
+    H --> I
+
+    H -. unavailable .-> F
+    I --> J[Personalized insight + curated actions]
+
+    F --> K[Result]
+    J --> K
+    K --> A
+~~~
 
 ### Why this split matters
 
-The LLM is **not used as a calculator**. Assessment scores are computed by fixed rules, including reverse-scoring of positive questions. Gemini receives the already-calculated metrics and is responsible only for qualitative interpretation and personalized recommendations.
+The LLM is **not used as a calculator**.
 
-This makes the result more reproducible, explainable and easier to defend in a product / AI architecture discussion.
+Assessment scores, factor scores, status bands, and the primary pressure factor are calculated by fixed rules first. Gemini receives the already-calculated result and can only add qualitative interpretation and choose from allowed curated action IDs.
 
-## Secure API architecture
+The assessment API validates the structured AI response before using it. If the model is unavailable or returns an invalid payload, deterministic scoring remains authoritative and the result still completes with deterministic guidance.
 
-Gemini is called only from the serverless layer.
-
-- No Gemini API key is shipped in the browser bundle.
-- `GEMINI_API_KEY` is stored as a server-side environment variable.
-- `.env.local` is gitignored.
-- AI responses are validated before being returned to the UI.
-- Assessment input is validated server-side.
-
-The frontend calls only:
-
-```text
-POST /api/check-in
-POST /api/assessment
-```
+Non-pressure states do not need generative AI at all: **Perfect, Protect, and Watch** use deterministic guidance directly. Gemini personalization is reserved for **Pressure** states, where additional interpretation is most useful.
 
 ## Assessment logic
 
-The 12-item custom assessment measures three Work Sustainability factors on a 0–100 scale:
+The 12-item Work Sustainability assessment measures three factors on a 0–100 scale:
 
-- **Workload balance** — 4 questions
-- **Recovery** — 4 questions
-- **Control & clarity** — 4 questions
+- **Workload balance** — 4 questions, 40% of overall score
+- **Recovery** — 4 questions, 40%
+- **Control & clarity** — 4 questions, 20%
 
-Responses use a 1–5 scale covering the previous two weeks.
+The prompt asks employees to think about the previous two weeks.
 
-Positive items are normalized as `1→0, 2→25, 3→50, 4→75, 5→100`.
+Responses use a 1–5 scale. Standard normalization is:
 
-Reverse-coded items first use `effective = 6 - answer` and then the same normalization.
+~~~text
+1 → 0
+2 → 25
+3 → 50
+4 → 75
+5 → 100
+~~~
 
-Overall Work Sustainability is calculated deterministically:
+Reverse-coded items first use:
 
-`Work Sustainability = 0.4 × Workload balance + 0.4 × Recovery + 0.2 × Control & clarity`
+~~~text
+effective = 6 - answer
+~~~
+
+and then the same normalization.
+
+Overall Work Sustainability:
+
+~~~text
+0.4 × Workload balance
++ 0.4 × Recovery
++ 0.2 × Control & clarity
+~~~
 
 Higher is better.
 
@@ -113,34 +175,51 @@ Status bands:
 - **45–64** — Needs attention
 - **0–44** — At risk
 
-The primary pressure factor is selected by weighted impact on the overall score, not simply by the lowest raw factor score.
+The primary pressure factor is selected by **largest weighted drag on the overall score**, not simply by the lowest raw factor score.
 
-Gemini does **not** calculate or change numeric scores. It receives the deterministic result and is used only for qualitative interpretation and allowed next-step actions.
+## Reliability and fallback behavior
 
-This is a **product heuristic**, not a clinical or diagnostic model.
+For pressure-mode personalization the server currently uses:
 
-## HR decision loop
+1. **Gemini 3.8 Flash**
+2. retry on transient capacity errors
+3. **Gemini 3.5 Flash** as model fallback
+4. deterministic insight + curated actions if AI personalization still fails
 
-The HR dashboard mirrors the employee model using synthetic aggregated team data:
+The browser does not abandon the request after eight seconds. Instead, the processing screen tells the employee that the calculation is taking longer than usual and continues waiting for the server result.
 
-**Team Sustainability → 3 drivers → primary issue → recommended intervention → owner → re-check → outcome**
+Scoring rules are unchanged by this fallback chain.
 
-The demo uses a minimum **5-response privacy threshold** before aggregated team signals are shown.
+## Privacy model
 
-Synthetic outcomes demonstrate the decision loop only and are not evidence of causal impact.
+A few product choices are intentional:
 
-Survey-derived sustainability signals are not translated directly into FTE or staffing requirements.
+- employee assessment results are private;
+- managers receive aggregates, not individual results;
+- department aggregates require at least **5 completed responses**;
+- public People/demo history is explicitly synthetic;
+- the assessment is framed as work sustainability, not diagnosis;
+- Alpha invite tokens are secret capabilities and only their hashes are stored in Neon;
+- department-manager and org-admin scopes are enforced separately.
 
-## Product / privacy choices
+## Secure API architecture
 
-A few choices are intentional and part of the product case:
+Gemini is called only from the serverless layer.
 
-- HR sees **aggregated team sustainability signals**, not individual employee assessment results.
-- Aggregated HR signals require at least **5 responses**.
-- Demo/history data is explicitly marked as synthetic.
-- The employee assessment is described as a Work Sustainability check, not a clinical diagnosis.
-- Placeholder actions that would imply non-existent functionality were removed rather than faked.
-- Browser history and deep links work for the main employee and HR routes.
+- No Gemini API key is shipped in the browser bundle.
+- GEMINI_API_KEY is stored as a server-side environment variable.
+- Assessment inputs are validated server-side.
+- Generative outputs are validated against the expected structured schema.
+- AI-selected action IDs must belong to the deterministic allow-list for the relevant factor and action slot.
+- Deterministic scoring remains the source of truth.
+
+The public assessment path calls:
+
+~~~text
+POST /api/assessment
+~~~
+
+The Alpha branch adds dedicated session, assessment, feedback, and manager APIs backed by Neon.
 
 ## Tech stack
 
@@ -148,22 +227,27 @@ A few choices are intentional and part of the product case:
 - TypeScript
 - Vite 6
 - Vercel Serverless Functions
-- Google Gemini API (`gemini-3.6-flash`)
+- Google Gemini API — Gemini 3.8 Flash primary, Gemini 3.5 Flash fallback
+- Neon Postgres for the real Alpha
 - Recharts
-- Tailwind CSS (CDN, acceptable for prototype scope)
+- Tailwind CSS
 
-## Main routes
+## Core routes
 
-```text
-/employee/progress
-/employee/program
+Public demo:
+
+~~~text
+/
 /employee/assessment
-/employee/program/module/:id
-
 /hr/dashboard
-/hr/team
-/hr/reports
-```
+~~~
+
+Real Alpha branch:
+
+~~~text
+/alpha#<secret-token>
+/alpha/manager#<secret-token>
+~~~
 
 ## Run locally
 
@@ -174,67 +258,65 @@ A few choices are intentional and part of the product case:
 - Vercel account
 - Gemini API key
 
-### 1. Install dependencies
+### Install
 
-```bash
+~~~bash
 npm install
-```
+~~~
 
-### 2. Link the local project to Vercel
+### Link to Vercel
 
-```bash
+~~~bash
 npx vercel link
-```
+~~~
 
-### 3. Configure the secret
+### Pull environment variables
 
-Add `GEMINI_API_KEY` to the project's Vercel Environment Variables for Development (and Production when deploying), then pull it locally:
+Add GEMINI_API_KEY to the Vercel project environment, then:
 
-```bash
+~~~bash
 npx vercel env pull .env.local
-```
+~~~
 
-Never commit `.env.local` or an API key.
+Never commit .env.local or an API key.
 
-### 4. Start the full local app
+### Run the full local app
 
-```bash
+~~~bash
 npx vercel dev
-```
-
-Then open the URL printed by Vercel CLI, usually `http://localhost:3000`.
+~~~
 
 ### Production build check
 
-```bash
+~~~bash
 npm run build
-```
+~~~
 
 ## Prototype limitations
 
-This repository is intentionally not a full enterprise wellbeing platform. In particular:
+This is not yet a production HR platform.
 
-- authentication is simulated;
-- HR and employee history data is synthetic;
-- there is no persistent database;
-- there are no real HRIS integrations;
-- program content is representative rather than complete;
-- Tailwind is loaded via CDN;
-- the assessment is custom and non-clinical.
+- The public People view uses synthetic data.
+- The public demo does not write employee assessment results into the Alpha database.
+- Real Alpha authentication is capability-token based rather than enterprise SSO.
+- The real Alpha re-check workflow is not yet implemented end to end.
+- There are no HRIS integrations yet.
+- The assessment is custom and non-clinical.
 
-These constraints are deliberate: the goal is to validate and demonstrate the product and AI architecture, not to recreate a production HR suite.
+These constraints are deliberate: the current goal is to validate the decision loop, employee value, privacy model, and product behavior before expanding infrastructure.
 
 ## What this project demonstrates
 
-This project is intended as evidence of **hands-on AI product prototyping** by a Product Lead / Senior Product Manager:
+Resilience.ai is intended as evidence of hands-on AI product prototyping by a Product Lead / Senior Product Manager:
 
-- translating a product hypothesis into working employee and HR workflows;
-- selecting where AI adds value and where deterministic logic is safer;
-- implementing structured AI outputs;
+- translating a product hypothesis into working employee and People workflows;
+- separating deterministic decision logic from generative personalization;
+- implementing structured and validated AI outputs;
 - designing a secure browser → serverless → LLM boundary;
-- thinking through privacy and responsible product positioning;
-- iterating from an old pet project to a deployable public prototype.
+- adding a real privacy-aware Alpha without contaminating the public synthetic demo;
+- thinking through employee trust, manager actionability, and re-check loops;
+- iterating a working product through live user and buyer feedback.
 
 ---
 
-**Resilience.ai** — portfolio prototype for work sustainability and workforce resilience.
+**Resilience.ai** — work sustainability signals turned into privacy-safe employee and management actions.
